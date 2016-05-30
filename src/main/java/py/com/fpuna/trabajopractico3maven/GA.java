@@ -26,7 +26,7 @@ public class GA {
         ArrayList<Individuo> resultado = new ArrayList<>();
 
         Double minimum = EXTREMOS[0];
-        Double maximum = EXTREMOS[1];
+        Double maximum = EXTREMOS[1] - EXTREMOS[0];
 
         for (int j = 0; j < cantidadIndividuos; j++) {
             Individuo elemento = new Individuo();
@@ -35,7 +35,7 @@ public class GA {
             for (int i = 0; i < CANTIDAD_CROMOSOMAS; i++) {
 
                 Random rand = new Random();
-                Double randomNum = (rand.nextDouble() * minimum) + maximum;
+                Double randomNum = EXTREMOS[0] + (EXTREMOS[1] - EXTREMOS[0]) * rand.nextDouble();
                 elemento.cromosomas.add(randomNum);
 
             }
@@ -62,7 +62,7 @@ public class GA {
         for (Individuo elemento : individuos) {
 
             elemento.probabilidadSiguienteGeneracion = elemento.fitnessSolucionActual / totalFitness;
-            totalFDA = elemento.probabilidadSiguienteGeneracion;
+            totalFDA += elemento.probabilidadSiguienteGeneracion;
             elemento.funcionDistribucionAcumulativa = (totalFDA);
         }
 
@@ -72,12 +72,11 @@ public class GA {
     static ArrayList<Individuo> generarNuevosIndividuos(ArrayList<Individuo> individuos) {
         //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 
-        // ordeno por si las dudas
-        Collections.sort(individuos,
-                (Individuo fruit2, Individuo fruit1)
-                -> fruit1.funcionDistribucionAcumulativa.compareTo(
-                        fruit2.funcionDistribucionAcumulativa));
-
+//        // ordeno por si las dudas
+//        Collections.sort(individuos,
+//                (Individuo fruit2, Individuo fruit1)
+//                -> fruit1.funcionDistribucionAcumulativa.compareTo(
+//                        fruit2.funcionDistribucionAcumulativa));
         ArrayList<Individuo> nuevosIndividuos = new ArrayList<>();
 
         while (nuevosIndividuos.size() < individuos.size()) {
@@ -119,6 +118,10 @@ public class GA {
 
         }
 
+        if (individuosCruzamiento.size() < 2) {//no cruzar, no hay suficientes elementos
+            return nuevaPoblacion;
+        }
+
         Integer individuoAnterior = null;
         Integer individuoActual = null;
         for (Integer elemento : individuosCruzamiento) {
@@ -141,7 +144,7 @@ public class GA {
             Integer puntoCrossover = random.nextInt(CANTIDAD_CROMOSOMAS);
 
             cromosomasCrossover.addAll(individuoAnteriorI.cromosomas.subList(0, puntoCrossover));
-            cromosomasCrossover.addAll(individuoActualI.cromosomas.subList(puntoCrossover, CANTIDAD_CROMOSOMAS - 1));
+            cromosomasCrossover.addAll(individuoActualI.cromosomas.subList(puntoCrossover, CANTIDAD_CROMOSOMAS));
 
             nuevaPoblacion.get(individuoAnterior).cromosomas = cromosomasCrossover;
 
@@ -150,9 +153,9 @@ public class GA {
         }
 
         //al final hay que hacer entre el ultimo y el primero
-        Individuo individuoAnteriorI = nuevaPoblacion.get(
+        Individuo individuoAnteriorI = Poblacion.get(
                 individuosCruzamiento.get(individuosCruzamiento.size() - 1));
-        Individuo individuoActualI = nuevaPoblacion.get(
+        Individuo individuoActualI = Poblacion.get(
                 individuosCruzamiento.get(0));
 
         ArrayList<Double> cromosomasCrossover = new ArrayList<>();
@@ -162,7 +165,7 @@ public class GA {
         Integer puntoCrossover = random.nextInt(CANTIDAD_CROMOSOMAS);
 
         cromosomasCrossover.addAll(individuoAnteriorI.cromosomas.subList(0, puntoCrossover));
-        cromosomasCrossover.addAll(individuoActualI.cromosomas.subList(puntoCrossover, CANTIDAD_CROMOSOMAS - 1));
+        cromosomasCrossover.addAll(individuoActualI.cromosomas.subList(puntoCrossover, CANTIDAD_CROMOSOMAS));
 
         nuevaPoblacion.get(individuosCruzamiento.size() - 1).cromosomas = cromosomasCrossover;
 
@@ -199,17 +202,16 @@ public class GA {
                 }
 
             }
-            posicionGenes = cantidadGenes.intValue() - iteradorGenes;
-            rnd =new Random();
-            Double ValorMutado = (rnd.nextDouble() * EXTREMOS[0]) + EXTREMOS[1];
+            posicionGenes = posicionMutacion - iteradorGenes;
+            posicionGenes = posicionGenes % CANTIDAD_CROMOSOMAS; //PARA EVITAR INDEXOUTOFBOUNDS
+            rnd = new Random();
+            Double ValorMutado = EXTREMOS[0] + (EXTREMOS[1] - EXTREMOS[0]) * rnd.nextDouble();
             nuevaPoblacion.get(posicionCromosomas).cromosomas.set(posicionGenes, ValorMutado);
-            
-            
-            
+
         }
 
         return nuevaPoblacion;
-        
+
     }
 
 }

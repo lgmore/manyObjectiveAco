@@ -27,8 +27,8 @@ public class Init {
 
     //public static final String CIUDAD_PRUEBA = "burma14.dat";
     public static final String CIUDAD_PRUEBA = "berlin52.dat";
-    public static final int CANTIDAD_INDIVIDUOS = 50;
-    public static final int CANTIDAD_ITERACIONES = 200;
+    public static final int CANTIDAD_INDIVIDUOS = 10;
+    public static final int CANTIDAD_ITERACIONES = 5;
     public static final int CANTIDAD_CIUDADES = 14;
 
     public static Double alpha = 10.0;
