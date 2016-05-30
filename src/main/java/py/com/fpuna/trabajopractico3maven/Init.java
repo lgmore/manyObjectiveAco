@@ -38,7 +38,7 @@ public class Init {
     public static Double evaporacion = 0.5;
     // new trail deposit coefficient;
     public static Double Q = 500.0;
-    public static Hormiga mejorGlobal = null;
+    public static Individuo mejorGlobal = null;
     public static ArrayList<Integer> ciudadesIniciales = new ArrayList<>();
     static final Logger log = LogManager.getLogger(Init.class.getName());
 
@@ -48,18 +48,8 @@ public class Init {
     public static void main(String[] args) throws IOException {
         // TODO code application logic here
         log.info("+*****comienza proceso*****+");
-        for (int i = 0; i < CANTIDAD_CIUDADES; i++) {
 
-            ciudadesIniciales.add(i);
-
-        }
-
-        Path archivo = FileSystems.getDefault().getPath("ciudades", CIUDAD_PRUEBA);
-        ACO.matrizCiudades = ACO.create2DIntMatrixFromFile(archivo);
-        ACO.inicializarVisibilidades(CANTIDAD_CIUDADES);
-        ACO.inicializarFeromonas(CANTIDAD_CIUDADES);
-
-        ArrayList<Hormiga> colonia = new ArrayList<>();
+        ArrayList<Individuo> individuos = GA.inicializarIndividuos(CANTIDAD_INDIVIDUOS);
 
 //        for (int i = 0; i < CANTIDAD_INDIVIDUOS; i++) {
 //
@@ -72,20 +62,16 @@ public class Init {
             log.info("----------------------");
             log.info("comienza iteracion: " + (j + 1));
 
-            List<Future<Hormiga>> listaFutures = new ArrayList<Future<Hormiga>>();
+            List<Future<Individuo>> listaFutures = new ArrayList<>();
             ExecutorService executor = Executors.newFixedThreadPool(CANTIDAD_INDIVIDUOS);
             MonitorHilos monitor = new MonitorHilos(executor, 10);
             Thread monitorThread = new Thread(monitor);
             monitorThread.start();
             for (int i = 0; i < CANTIDAD_INDIVIDUOS; i++) {
 
-                Callable<Hormiga> worker;
-                if (j == 0) { // estamos en la primera iteracion
-                    worker = new Hormiga();
-                } else {
-                    worker = colonia.get(i);
-                }
-                Future<Hormiga> submit = executor.submit(worker);
+                Callable<Individuo> worker = individuos.get(i);
+
+                Future<Individuo> submit = executor.submit(worker);
                 listaFutures.add(submit);
 
             }
@@ -97,10 +83,10 @@ public class Init {
             while (!executor.isTerminated()) {
             }
 
-            colonia.clear();
-            for (Future<Hormiga> future : listaFutures) {
+            individuos.clear();
+            for (Future<Individuo> future : listaFutures) {
                 try {
-                    colonia.add(future.get());
+                    individuos.add(future.get());
                 } catch (InterruptedException | ExecutionException e) {
                     e.printStackTrace();
                 }
@@ -108,49 +94,38 @@ public class Init {
 
             //una vez que se recuperaron todas las hormigas, se debe actualizar  
             //la tabla de feromonas, y a partir de ahi volver a ejecutar
-            ACO.actualizarFeromonas(colonia);
+            //GA.actualizarFeromonas(colonia);
             //printMatrizFeromonas();
+            GA.calcularFDA(individuos);
+            //se generan nuevos individuos a partir de la poblacion vieja
+            ArrayList<Individuo> nuevaPoblacion = GA.generarNuevosIndividuos(individuos);
 
-            log.info("***soluciones provisorias***");
-            for (Hormiga elemento : colonia) {
+            nuevaPoblacion = GA.realizarCrossover(nuevaPoblacion);
 
-                if (mejorGlobal == null) {
-                    //si todavia no tenemos solucion global, 
-                    //asignamos el primer elemento que haya
+            nuevaPoblacion = GA.realizarMutacion(nuevaPoblacion);
+            individuos = nuevaPoblacion;
 
-                    mejorGlobal = elemento;
-                } else {//comparacion para obtener el mejor global
-                    if (mejorGlobal.getFitnessSolucionActual().compareTo(elemento.getFitnessSolucionActual()) > 0) {
-                        mejorGlobal = elemento;
-                    }
-                }
-
-//                log.info("Sol hormiga: " + Arrays.toString(elemento.getSolucionActual().toArray()));
-//                log.info("Fitness solucion " + elemento.getFitnessSolucionActual());
-
-            }
-            log.info("----------------------");
 
         }
         log.info("***mejor global encontrado***");
-        log.info(Arrays.toString(mejorGlobal.getSolucionActual().toArray()));
-        log.info("fitness: " + (mejorGlobal.getFitnessSolucionActual()));
+//        log.info(Arrays.toString(mejorGlobal.getSolucionActual().toArray()));
+//        log.info("fitness: " + (mejorGlobal.getFitnessSolucionActual()));
 
     }
 
-    private static void printMatrizFeromonas() {
-
-        log.info("matriz feromonas: ");
-        for (int fila = 0; fila < CANTIDAD_CIUDADES; fila++) {
-            StringBuilder strb = new StringBuilder();
-            for (int columna = 0; columna < CANTIDAD_CIUDADES; columna++) {
-
-                strb.append(ACO.matrizFeromonas[fila][columna]).append(" ");
-
-            }
-            log.info(strb.toString());
-
-        }
-
-    }
+//    private static void printMatrizFeromonas() {
+//
+//        log.info("matriz feromonas: ");
+//        for (int fila = 0; fila < CANTIDAD_CIUDADES; fila++) {
+//            StringBuilder strb = new StringBuilder();
+//            for (int columna = 0; columna < CANTIDAD_CIUDADES; columna++) {
+//
+//                strb.append(GA.matrizFeromonas[fila][columna]).append(" ");
+//
+//            }
+//            log.info(strb.toString());
+//
+//        }
+//
+//    }
 }
