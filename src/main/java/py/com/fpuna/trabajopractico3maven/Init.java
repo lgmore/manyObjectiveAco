@@ -26,9 +26,11 @@ import org.apache.logging.log4j.LogManager;
 public class Init {
 
     //public static final String CIUDAD_PRUEBA = "burma14.dat";
-    public static final int CANTIDAD_INDIVIDUOS = 100;
-    public static final int CANTIDAD_ITERACIONES = 1000;
-    public static final Double RADIO_FITNESS_SHARING = 4.0;
+    public static final int CANTIDAD_INDIVIDUOS = 50;
+    //4 objetivos public static final int CANTIDAD_ITERACIONES = 700;
+    public static final int CANTIDAD_ITERACIONES = 300;
+    //public static final Double RADIO_FITNESS_SHARING = 10.0;
+    public static final Double RADIO_FITNESS_SHARING = 0.5;//1.0;
     
 
 
@@ -126,7 +128,7 @@ public class Init {
         for (Individuo elemento : poblacionPareto) {
 
             log.info("cromosomas: " + Arrays.toString(elemento.cromosomas.toArray()));
-            log.debug("resultado: " + Arrays.toString(elemento.resultadoSolucionActual.toArray()));
+            log.info("resultado: " + Arrays.toString(elemento.resultadoSolucionActual.toArray()));
 
         }
 

@@ -21,9 +21,9 @@ import org.apache.logging.log4j.Logger;
 public class GA {
 
     static public final Integer CANTIDAD_GENES = 20;
-    public static final int CANTIDAD_OBJETIVOS = 2;
+    public static final int CANTIDAD_OBJETIVOS = 8;
     static public final Double CROSSOVER_RATE = 0.25;
-    static public final Double MUTACION_RATE = 0.15;
+    static public final Double MUTACION_RATE = 0.10;
     static public final Double[] EXTREMOS = {0.0, 1.0};
     static public ArrayList<Double> funcionDistribucionAcumulativa;
     static final Logger log = LogManager.getLogger(GA.class.getName());
