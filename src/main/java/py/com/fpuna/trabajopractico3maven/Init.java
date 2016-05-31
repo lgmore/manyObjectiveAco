@@ -26,20 +26,12 @@ import org.apache.logging.log4j.LogManager;
 public class Init {
 
     //public static final String CIUDAD_PRUEBA = "burma14.dat";
-    public static final String CIUDAD_PRUEBA = "berlin52.dat";
-    public static final int CANTIDAD_INDIVIDUOS = 10;
-    public static final int CANTIDAD_ITERACIONES = 5;
-    public static final int CANTIDAD_CIUDADES = 14;
+    public static final int CANTIDAD_INDIVIDUOS = 50;
+    public static final int CANTIDAD_ITERACIONES = 100;
+    public static final Double RADIO_FITNESS_SHARING = 4.0;
 
-    public static Double alpha = 10.0;
-
-    public static Double beta = 0.005;
-
-    public static Double evaporacion = 0.5;
-    // new trail deposit coefficient;
-    public static Double Q = 500.0;
     public static Individuo mejorGlobal = null;
-    public static ArrayList<Integer> ciudadesIniciales = new ArrayList<>();
+
     static final Logger log = LogManager.getLogger(Init.class.getName());
 
     /**
@@ -58,6 +50,7 @@ public class Init {
 //
 //        }//ya tengo mis particulas, tengo que evaluar soluciones
         //boolean primeravez = true;
+        ArrayList<Individuo> poblacionPareto = new ArrayList<>();
         for (int j = 0; j < CANTIDAD_ITERACIONES; j++) {
             log.info("----------------------");
             log.info("comienza iteracion: " + (j + 1));
@@ -92,25 +85,50 @@ public class Init {
                 }
             }
 
+            individuos.addAll(poblacionPareto);
+            ArrayList<Individuo> individuosBackup = new ArrayList<>();
+            individuosBackup.addAll(individuos);
+            poblacionPareto = GA.getIndividuosNoDominados(individuos);
+            log.info("***pareto de la iteracion "+(j+1)+"***");
+
+            for (Individuo elemento : poblacionPareto) {
+
+                log.info("cromosomas: " + Arrays.toString(elemento.cromosomas.toArray()));
+                log.info("resultado: " + Arrays.toString(elemento.resultadoSolucionActual.toArray()));
+
+            }
+            individuos.addAll(individuosBackup);
+
+            ArrayList<Individuo> poblacionIntermedia = new ArrayList<>();
+
+            poblacionPareto = GA.calcularFitnessSharing(poblacionPareto, RADIO_FITNESS_SHARING);
+
+            poblacionPareto = GA.calcularFDA(poblacionPareto);
+
             //una vez que se recuperaron todas las hormigas, se debe actualizar  
             //la tabla de feromonas, y a partir de ahi volver a ejecutar
             //GA.actualizarFeromonas(colonia);
             //printMatrizFeromonas();
-            GA.calcularFDA(individuos);
+            //GA.calcularFDA(individuos);
             //se generan nuevos individuos a partir de la poblacion vieja
-            ArrayList<Individuo> nuevaPoblacion = GA.generarNuevosIndividuos(individuos);
+            //ArrayList<Individuo> nuevaPoblacion = GA.generarNuevosIndividuos(individuos);
+            poblacionIntermedia = GA.realizarCrossover(poblacionPareto, individuos);
 
-            nuevaPoblacion = GA.realizarCrossover(nuevaPoblacion);
-
-            nuevaPoblacion = GA.realizarMutacion(nuevaPoblacion);
-            individuos = nuevaPoblacion;
-
+            poblacionIntermedia = GA.realizarMutacion(poblacionIntermedia);
+            individuos = poblacionIntermedia;
 
         }
-        log.info("***mejor global encontrado***");
+        log.info("***frente pareto encontrado***");
+
+        for (Individuo elemento : poblacionPareto) {
+
+            log.info("cromosomas: " + Arrays.toString(elemento.cromosomas.toArray()));
+            log.info("resultado: " + Arrays.toString(elemento.resultadoSolucionActual.toArray()));
+
+        }
+
 //        log.info(Arrays.toString(mejorGlobal.getSolucionActual().toArray()));
 //        log.info("fitness: " + (mejorGlobal.getFitnessSolucionActual()));
-
     }
 
 //    private static void printMatrizFeromonas() {

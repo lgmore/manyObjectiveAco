@@ -1,2 +1,2 @@
-# manyObjectiveAco
-A try to implement manyObjectiveAco
+# manyObjectiveGA
+A try to implement manyObjectiveGA
