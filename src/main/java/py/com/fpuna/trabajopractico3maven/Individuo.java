@@ -25,7 +25,7 @@ public class Individuo implements Callable {
     public Double funcionDistribucionAcumulativa;
     static final Logger log = LogManager.getLogger(Individuo.class.getName());
     boolean dominado = false; //no dominado hasta que se diga lo contrario
-    Double coeficienteFitnessSharing=null;
+    Double coeficienteFitnessSharing = null;
 
     public Individuo() {
 
@@ -36,26 +36,54 @@ public class Individuo implements Callable {
     }
 
     void evaluarFuncion() {
-        resultadoSolucionActual = new ArrayList<>();
-        //(a+2b+3c+4d)-30
 
-        //x^2
-        UnaryOperator<Double> funcion1 = (x) -> {
-            return Math.pow(x, 2);
-        };
+        resultadoSolucionActual= new ArrayList<>();
 
-        UnaryOperator<Double> funcion2 = (x) -> {
+        ArrayList<Double> x = new ArrayList<>();
+        ArrayList<Double> f = new ArrayList<>();
 
-            return Math.pow(x - 2, 2);
+        for (Double gen : cromosomas) {
 
-        };
+            x.add(gen);
 
-        resultadoSolucionActual.add(funcion1.apply(cromosomas.get(0)));
-        resultadoSolucionActual.add(funcion2.apply(cromosomas.get(0)));
+        }
 
-        //antes de volver, se imprime el resultado provisorio
-        log.debug("Sol individuo: " + Arrays.toString(cromosomas.toArray()));
-        log.debug("resultado solucion " + resultadoSolucionActual);
+        Double g = 0.0;
+        for (Double elemento : x) {
+
+            g += Math.pow(elemento - 0.5, 2);
+
+        }
+
+        for (int i = 0; i < GA.CANTIDAD_OBJETIVOS; i++) {
+
+            Double elemento = 1 + g;
+            f.add(elemento);
+
+        }
+
+        for (int i = 0; i < GA.CANTIDAD_OBJETIVOS; i++) {
+            for (int j = 0; j < GA.CANTIDAD_OBJETIVOS - (i + 1); j++) {
+                Double f_i = f.get(i);
+                f_i *= Math.cos(x.get(j) * 0.5 * Math.PI);
+                f.set(i, f_i);
+            }
+            if (i != 0) {
+                Double f_i = f.get(i);
+                int aux = GA.CANTIDAD_OBJETIVOS - (i + 1);
+                f_i *= Math.sin(x.get(aux) * 0.5 * Math.PI);
+                //f[i] *= Math.sin(x[aux] * 0.5 * Math.PI);
+                f.set(i, f_i);
+            } //if 
+        } // for
+
+        for (int i = 0; i < GA.CANTIDAD_OBJETIVOS; i++) {
+            resultadoSolucionActual.add(f.get(i));
+        }
+        
+        log.debug("individuo: "+ Arrays.toString(cromosomas.toArray()));
+        log.debug("solucion: "+ Arrays.toString(resultadoSolucionActual.toArray()));
+
     }
 
     @Override
@@ -63,37 +91,5 @@ public class Individuo implements Callable {
         this.evaluarFuncion();
         return this;
     }
-
-//    private Double calcularProbabilidadDePasar(Integer ciudadDondeEstoy, Integer ciudadADondeVoy) {
-//        //int i = ant.tour[currentIndex];
-//        Double resultado = 0.0;
-//        Double denominador = 0.0;
-//        for (int l = 0; l < Init.CANTIDAD_CIUDADES; l++) { ///probabilidades de que pase a otro estado,
-//            //dado que la ciudad todavia no se visito
-//            if (!solucionActual.contains(l)) {
-//                denominador += pow(GA.matrizFeromonas[ciudadDondeEstoy][l], Init.alpha) //feromonas
-//                        * pow(1.0 / GA.matrizCiudades[ciudadDondeEstoy][l], Init.beta); //visibilidades
-//            }
-//        }
-//
-//        //for (int j = 0; j < Init.CANTIDAD_CIUDADES; j++) {
-//        if (solucionActual.contains(ciudadADondeVoy)) {
-//            resultado = 0.0;
-//            
-//        } else {
-//            Double numerador = Math.pow(GA.matrizFeromonas[ciudadDondeEstoy][ciudadADondeVoy], Init.alpha)
-//                    * Math.pow(1.0 / GA.matrizCiudades[ciudadDondeEstoy][ciudadADondeVoy], Init.beta);
-//
-//            //log.info("numerador: " + numerador);
-//            //log.info("denominador: " + denominador);
-//            resultado = numerador / denominador;
-//        }
-//        //}
-//
-//        return resultado;
-//        
-//    }
-
-
 
 }
