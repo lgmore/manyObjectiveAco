@@ -20,10 +20,11 @@ import org.apache.logging.log4j.Logger;
  */
 public class GA {
 
-    static public final Integer CANTIDAD_CROMOSOMAS = 1;
+    static public final Integer CANTIDAD_GENES = 20;
+    public static final int CANTIDAD_OBJETIVOS = 2;
     static public final Double CROSSOVER_RATE = 0.25;
     static public final Double MUTACION_RATE = 0.15;
-    static public final Double[] EXTREMOS = {-30.0, 30.0};
+    static public final Double[] EXTREMOS = {0.0, 1.0};
     static public ArrayList<Double> funcionDistribucionAcumulativa;
     static final Logger log = LogManager.getLogger(GA.class.getName());
 
@@ -129,7 +130,7 @@ public class GA {
             Individuo elemento = new Individuo();
             elemento.cromosomas = new ArrayList<>();
 
-            for (int i = 0; i < CANTIDAD_CROMOSOMAS; i++) {
+            for (int i = 0; i < CANTIDAD_GENES; i++) {
 
                 Random rand = new Random();
                 Double randomNum = EXTREMOS[0] + (EXTREMOS[1] - EXTREMOS[0]) * rand.nextDouble();
@@ -217,7 +218,7 @@ public class GA {
             //seleccionar uno del frente pareto
             Double rnd = Math.random();
 
-            Individuo ladoPareto=null;
+            Individuo ladoPareto = null;
             for (Individuo elemento : PoblacionPareto) {
                 if (rnd <= elemento.funcionDistribucionAcumulativa) {
 
@@ -232,15 +233,15 @@ public class GA {
 
             Individuo ladoPoblacion = Poblacion.get(posLadoPoblacion);
 
-            Integer puntoCrossover = rn2.nextInt(CANTIDAD_CROMOSOMAS);
+            Integer puntoCrossover = rn2.nextInt(CANTIDAD_GENES);
             ArrayList<Double> cromosomasCrossover = new ArrayList<>();
             cromosomasCrossover.addAll(ladoPareto.cromosomas.subList(0, puntoCrossover));
-            cromosomasCrossover.addAll(ladoPoblacion.cromosomas.subList(puntoCrossover, CANTIDAD_CROMOSOMAS));
+            cromosomasCrossover.addAll(ladoPoblacion.cromosomas.subList(puntoCrossover, CANTIDAD_GENES));
 
             Individuo resultado = new Individuo();
-            resultado.cromosomas=cromosomasCrossover;
+            resultado.cromosomas = cromosomasCrossover;
             nuevaPoblacion.add(resultado);
-            
+
         }
 
         return nuevaPoblacion;
@@ -248,7 +249,7 @@ public class GA {
 
     static ArrayList<Individuo> realizarMutacion(ArrayList<Individuo> Poblacion) {
         //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-        Double cantidadGenes = (double) Poblacion.size() * CANTIDAD_CROMOSOMAS;
+        Double cantidadGenes = (double) Poblacion.size() * CANTIDAD_GENES;
         ArrayList<Individuo> nuevaPoblacion = Poblacion;
 
         Double numeroMutaciones;
@@ -265,9 +266,9 @@ public class GA {
             //buscar en que posicion se muta
             while (iteradorGenes < posicionMutacion) {
 
-                if (iteradorGenes + CANTIDAD_CROMOSOMAS < posicionMutacion) {
+                if (iteradorGenes + CANTIDAD_GENES < posicionMutacion) {
                     posicionCromosomas++;
-                    iteradorGenes += CANTIDAD_CROMOSOMAS;
+                    iteradorGenes += CANTIDAD_GENES;
 
                 } else {
 
@@ -277,7 +278,7 @@ public class GA {
 
             }
             posicionGenes = posicionMutacion - iteradorGenes;
-            posicionGenes = posicionGenes % CANTIDAD_CROMOSOMAS; //PARA EVITAR INDEXOUTOFBOUNDS
+            posicionGenes = posicionGenes % CANTIDAD_GENES; //PARA EVITAR INDEXOUTOFBOUNDS
             rnd = new Random();
             Double ValorMutado = EXTREMOS[0] + (EXTREMOS[1] - EXTREMOS[0]) * rnd.nextDouble();
             nuevaPoblacion.get(posicionCromosomas).cromosomas.set(posicionGenes, ValorMutado);
