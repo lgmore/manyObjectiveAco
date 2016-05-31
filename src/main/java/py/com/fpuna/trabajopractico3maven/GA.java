@@ -7,7 +7,12 @@ package py.com.fpuna.trabajopractico3maven;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Random;
+import java.util.concurrent.Callable;
+import java.util.function.BinaryOperator;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  *
@@ -15,11 +20,103 @@ import java.util.Random;
  */
 public class GA {
 
-    static public final Integer CANTIDAD_CROMOSOMAS = 4;
+    static public final Integer CANTIDAD_CROMOSOMAS = 1;
     static public final Double CROSSOVER_RATE = 0.25;
-    static public final Double MUTACION_RATE = 0.10;
-    static public final Double[] EXTREMOS = {0.0, 30.0};
+    static public final Double MUTACION_RATE = 0.15;
+    static public final Double[] EXTREMOS = {-30.0, 30.0};
     static public ArrayList<Double> funcionDistribucionAcumulativa;
+    static final Logger log = LogManager.getLogger(GA.class.getName());
+
+    public static ArrayList<Individuo> getIndividuosNoDominados(ArrayList<Individuo> individuos) {
+
+        ArrayList<Individuo> nuevaPoblacion = new ArrayList<>();
+
+        while (individuos.size() > 0) {
+
+            Individuo indiv = individuos.remove(0);
+
+            if (individuos.size() <= 0) { //hacer la comparacion contra los individuos no dominados
+                //obtenidos hasta ahora
+
+                for (Individuo elemento : nuevaPoblacion) {
+
+                    indiv = ese2dominado.apply(elemento, indiv);
+
+                }
+
+            } else {
+
+                for (Individuo elemento : individuos) {
+
+                    indiv = ese2dominado.apply(elemento, indiv);
+                    if (indiv.dominado == true) {
+                        break;
+                    }
+                }
+
+                for (Individuo elemento : nuevaPoblacion) {
+
+                    indiv = ese2dominado.apply(elemento, indiv);
+                    if (indiv.dominado == true) {
+                        break;
+                    }
+
+                }
+
+            }
+
+            if (!indiv.dominado) {
+
+                nuevaPoblacion.add(indiv);
+
+            }
+
+        }
+
+        return nuevaPoblacion;
+
+    }
+
+    static BinaryOperator<ArrayList<Double>> getDistanciaEuclidiana
+            = (elemento1, elemento2) -> {
+                ArrayList<Double> resultado = new ArrayList<>();
+                Double distanciaEuclidiana = 0.0;
+                for (int i = 0; i < elemento1.size(); i++) {
+                    Double solucion1 = elemento1.get(i);
+                    Double solucion2 = elemento2.get(i);
+                    distanciaEuclidiana += Math.pow(solucion2 - solucion1, 2);
+                }
+
+                distanciaEuclidiana = Math.sqrt(distanciaEuclidiana);
+                resultado.add(distanciaEuclidiana);
+
+                return resultado;
+
+            };
+
+    static BinaryOperator<Individuo> ese2dominado = (e1, e2) -> {
+
+        ArrayList<Double> fitnesse1 = e1.resultadoSolucionActual;
+        ArrayList<Double> fitnesse2 = e2.resultadoSolucionActual;
+
+        boolean esMayorOIgualEnTodosLosObjetivos = true;
+
+        for (int j = 0; j < fitnesse1.size(); j++) {
+
+            if (fitnesse2.get(j) < fitnesse1.get(j)) {
+
+                esMayorOIgualEnTodosLosObjetivos = false;
+                break;
+            }
+
+        }
+
+        if (esMayorOIgualEnTodosLosObjetivos) {
+            e2.dominado = true;
+        }
+
+        return e2;
+    };
 
     static ArrayList<Individuo> inicializarIndividuos(Integer cantidadIndividuos) {
         //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
@@ -48,24 +145,36 @@ public class GA {
 
     }
 
-    static void calcularFDA(ArrayList<Individuo> individuos) {
+    static ArrayList<Individuo> calcularFDA(ArrayList<Individuo> individuos) {
+
+        ArrayList<Individuo> resultado = individuos;
 
         Double totalFitness = 0.0;
         Double totalFDA = 0.0;
 
-        for (Individuo elemento : individuos) {
+        for (Individuo elemento : resultado) {
 
-            elemento.fitnessSolucionActual = (1 / (1 + elemento.resultadoSolucionActual));
-            totalFitness += elemento.fitnessSolucionActual;
+            totalFDA += elemento.coeficienteFitnessSharing;
+
         }
 
-        for (Individuo elemento : individuos) {
+        Double totalAnterior = 0.0;
 
-            elemento.probabilidadSiguienteGeneracion = elemento.fitnessSolucionActual / totalFitness;
-            totalFDA += elemento.probabilidadSiguienteGeneracion;
-            elemento.funcionDistribucionAcumulativa = (totalFDA);
+        for (Individuo elemento : resultado) {
+
+            elemento.funcionDistribucionAcumulativa = (totalAnterior + elemento.coeficienteFitnessSharing) / totalFDA;
+            totalAnterior += elemento.coeficienteFitnessSharing;
+
         }
 
+        return resultado;
+
+//        for (Individuo elemento : individuos) {
+//
+//            elemento.probabilidadSiguienteGeneracion = elemento.fitnessSolucionActual / totalFitness;
+//            totalFDA += elemento.probabilidadSiguienteGeneracion;
+//            elemento.funcionDistribucionAcumulativa = (totalFDA);
+//        }
         //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
@@ -98,76 +207,41 @@ public class GA {
         return nuevosIndividuos;
     }
 
-    static ArrayList<Individuo> realizarCrossover(ArrayList<Individuo> Poblacion) {
+    static ArrayList<Individuo> realizarCrossover(ArrayList<Individuo> PoblacionPareto, ArrayList<Individuo> Poblacion) {
         //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 
-        ArrayList<Individuo> nuevaPoblacion = Poblacion;
+        ArrayList<Individuo> nuevaPoblacion = new ArrayList<>();
 
-        ArrayList<Integer> individuosCruzamiento = new ArrayList<>();
-        Integer contador = 0;
-        //seleccionar individuos para cruzamiento
-        for (Individuo elemento : Poblacion) {
+        while (nuevaPoblacion.size() < Init.CANTIDAD_INDIVIDUOS) {
 
+            //seleccionar uno del frente pareto
             Double rnd = Math.random();
 
-            if (rnd < CROSSOVER_RATE) {
-                //individuo seleccionado
-                individuosCruzamiento.add(contador);
-            }
-            contador++;
+            Individuo ladoPareto=null;
+            for (Individuo elemento : PoblacionPareto) {
+                if (rnd <= elemento.funcionDistribucionAcumulativa) {
 
-        }
+                    ladoPareto = elemento;
+                    break;
 
-        if (individuosCruzamiento.size() < 2) {//no cruzar, no hay suficientes elementos
-            return nuevaPoblacion;
-        }
-
-        Integer individuoAnterior = null;
-        Integer individuoActual = null;
-        for (Integer elemento : individuosCruzamiento) {
-
-            if (individuoAnterior == null) {
-
-                individuoAnterior = elemento;
-                continue;
-
+                }
             }
 
-            individuoActual = elemento;
-            Individuo individuoAnteriorI = Poblacion.get(individuoAnterior);
-            Individuo individuoActualI = Poblacion.get(individuoActual);
+            Random rn2 = new Random();
+            Integer posLadoPoblacion = rn2.nextInt(Poblacion.size());
 
+            Individuo ladoPoblacion = Poblacion.get(posLadoPoblacion);
+
+            Integer puntoCrossover = rn2.nextInt(CANTIDAD_CROMOSOMAS);
             ArrayList<Double> cromosomasCrossover = new ArrayList<>();
+            cromosomasCrossover.addAll(ladoPareto.cromosomas.subList(0, puntoCrossover));
+            cromosomasCrossover.addAll(ladoPoblacion.cromosomas.subList(puntoCrossover, CANTIDAD_CROMOSOMAS));
 
-            contador = 0;
-            Random random = new Random();
-            Integer puntoCrossover = random.nextInt(CANTIDAD_CROMOSOMAS);
-
-            cromosomasCrossover.addAll(individuoAnteriorI.cromosomas.subList(0, puntoCrossover));
-            cromosomasCrossover.addAll(individuoActualI.cromosomas.subList(puntoCrossover, CANTIDAD_CROMOSOMAS));
-
-            nuevaPoblacion.get(individuoAnterior).cromosomas = cromosomasCrossover;
-
-            individuoAnterior = individuoActual;
-
+            Individuo resultado = new Individuo();
+            resultado.cromosomas=cromosomasCrossover;
+            nuevaPoblacion.add(resultado);
+            
         }
-
-        //al final hay que hacer entre el ultimo y el primero
-        Individuo individuoAnteriorI = Poblacion.get(
-                individuosCruzamiento.get(individuosCruzamiento.size() - 1));
-        Individuo individuoActualI = Poblacion.get(
-                individuosCruzamiento.get(0));
-
-        ArrayList<Double> cromosomasCrossover = new ArrayList<>();
-
-        contador = 0;
-        Random random = new Random();
-        Integer puntoCrossover = random.nextInt(CANTIDAD_CROMOSOMAS);
-
-        cromosomasCrossover.addAll(individuoAnteriorI.cromosomas.subList(0, puntoCrossover));
-        cromosomasCrossover.addAll(individuoActualI.cromosomas.subList(puntoCrossover, CANTIDAD_CROMOSOMAS));
-
-        nuevaPoblacion.get(individuosCruzamiento.size() - 1).cromosomas = cromosomasCrossover;
 
         return nuevaPoblacion;
     }
@@ -211,6 +285,61 @@ public class GA {
         }
 
         return nuevaPoblacion;
+
+    }
+
+    static ArrayList<Individuo> calcularFitnessSharing(ArrayList<Individuo> poblacionPareto, Double RADIO_FITNESS_SHARING) {
+        //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+
+        ArrayList<Individuo> resultado = poblacionPareto;
+
+        Collections.sort(resultado, (Individuo elemento2, Individuo elemento1)
+                -> elemento1.resultadoSolucionActual.get(0)
+                .compareTo(elemento2.resultadoSolucionActual
+                        .get(0)));
+
+        for (Individuo individuo : resultado) {
+
+            Double contadorVecinos = 0.0;
+            for (Individuo individuoASerAsignado : resultado) {
+
+                ArrayList<Double> distanciaE = getDistanciaEuclidiana.apply(
+                        individuo.resultadoSolucionActual,
+                        individuoASerAsignado.resultadoSolucionActual);
+                if (distanciaE.get(0) <= RADIO_FITNESS_SHARING) {
+                    if (distanciaE.get(0) > 0.0) {
+                        contadorVecinos++;
+                    }
+                } else {
+                    //break;
+                }
+
+            }
+
+            individuo.coeficienteFitnessSharing = 1 / (1 + contadorVecinos);
+
+            for (Individuo individuoASerAsignado : resultado) {
+
+                ArrayList<Double> distanciaE = getDistanciaEuclidiana.apply(
+                        individuo.resultadoSolucionActual,
+                        individuoASerAsignado.resultadoSolucionActual);
+                if (distanciaE.get(0) <= RADIO_FITNESS_SHARING) {
+                    individuoASerAsignado.coeficienteFitnessSharing = 1 / (1 + contadorVecinos);
+                } else {
+                    //break;
+                }
+
+            }
+
+        }
+
+        for (Individuo elemento : resultado) {
+
+            log.debug("fitness sharing : " + elemento.coeficienteFitnessSharing);
+
+        }
+
+        return resultado;
 
     }
 

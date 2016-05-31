@@ -7,12 +7,10 @@ package py.com.fpuna.trabajopractico3maven;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.Random;
 import java.util.concurrent.Callable;
+import java.util.function.UnaryOperator;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import static py.com.fpuna.trabajopractico3maven.Init.log;
 
 /**
  *
@@ -21,11 +19,13 @@ import static py.com.fpuna.trabajopractico3maven.Init.log;
 public class Individuo implements Callable {
 
     public ArrayList<Double> cromosomas;
-    public Double fitnessSolucionActual;
-    public Double resultadoSolucionActual;
-    public Double probabilidadSiguienteGeneracion;
+    public ArrayList<Double> fitnessSolucionActual;
+    public ArrayList<Double> resultadoSolucionActual;
+
     public Double funcionDistribucionAcumulativa;
     static final Logger log = LogManager.getLogger(Individuo.class.getName());
+    boolean dominado = false; //no dominado hasta que se diga lo contrario
+    Double coeficienteFitnessSharing=null;
 
     public Individuo() {
 
@@ -35,33 +35,27 @@ public class Individuo implements Callable {
         //Collections.shuffle(solucionActual, rn);
     }
 
-    /**
-     * @return the fitnessSolucionActual
-     */
-    public Double getFitnessSolucionActual() {
-        return fitnessSolucionActual;
-    }
-
-    /**
-     * @param fitnessSolucionActual the fitnessSolucionActual to set
-     */
-    public void setFitnessSolucionActual(Double fitnessSolucionActual) {
-        this.fitnessSolucionActual = fitnessSolucionActual;
-    }
-
     void evaluarFuncion() {
+        resultadoSolucionActual = new ArrayList<>();
         //(a+2b+3c+4d)-30
 
-        resultadoSolucionActual
-                = (cromosomas.get(0)
-                + 2 * cromosomas.get(1)
-                + 3 * cromosomas.get(2)
-                + 4 * cromosomas.get(3))
-                - 30;
+        //x^2
+        UnaryOperator<Double> funcion1 = (x) -> {
+            return Math.pow(x, 2);
+        };
+
+        UnaryOperator<Double> funcion2 = (x) -> {
+
+            return Math.pow(x - 2, 2);
+
+        };
+
+        resultadoSolucionActual.add(funcion1.apply(cromosomas.get(0)));
+        resultadoSolucionActual.add(funcion2.apply(cromosomas.get(0)));
 
         //antes de volver, se imprime el resultado provisorio
-        log.info("Sol individuo: " + Arrays.toString(cromosomas.toArray()));
-        log.info("resultado solucion " + resultadoSolucionActual);
+        log.debug("Sol individuo: " + Arrays.toString(cromosomas.toArray()));
+        log.debug("resultado solucion " + resultadoSolucionActual);
     }
 
     @Override
@@ -99,18 +93,7 @@ public class Individuo implements Callable {
 //        return resultado;
 //        
 //    }
-    /**
-     * @return the probabilidadSiguienteGeneracion
-     */
-    public Double getProbabilidadSiguienteGeneracion() {
-        return probabilidadSiguienteGeneracion;
-    }
 
-    /**
-     * @param probabilidadSiguienteGeneracion the
-     * probabilidadSiguienteGeneracion to set
-     */
-    public void setProbabilidadSiguienteGeneracion(Double probabilidadSiguienteGeneracion) {
-        this.probabilidadSiguienteGeneracion = probabilidadSiguienteGeneracion;
-    }
+
+
 }
