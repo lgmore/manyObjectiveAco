@@ -26,6 +26,7 @@ public class Individuo implements Callable {
     static final Logger log = LogManager.getLogger(Individuo.class.getName());
     boolean dominado = false; //no dominado hasta que se diga lo contrario
     Double coeficienteFitnessSharing = null;
+    Double strengh;
 
     public Individuo() {
 
@@ -34,19 +35,19 @@ public class Individuo implements Callable {
         //Random rn = new Random();
         //Collections.shuffle(solucionActual, rn);
     }
-
-    public static void main(String[] args) {
-    
-        Individuo ind = new Individuo();
-        ind.cromosomas = new ArrayList<>();
-        for (int i=0; i < 20; i++){
-        
-        
-            ind.cromosomas.add(0.5);
-            
-        }
-        ind.evaluarFuncion();
-    }
+//
+//    public static void main(String[] args) {
+//    
+//        Individuo ind = new Individuo();
+//        ind.cromosomas = new ArrayList<>();
+//        for (int i=0; i < 20; i++){
+//        
+//        
+//            ind.cromosomas.add(0.5);
+//            
+//        }
+//        ind.evaluarFuncion();
+//    }
 
     void evaluarFuncion() {
 

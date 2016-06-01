@@ -6,6 +6,7 @@
 package py.com.fpuna.trabajopractico3maven;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -16,6 +17,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import org.apache.commons.math3.util.Precision;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 
@@ -26,9 +28,9 @@ import org.apache.logging.log4j.LogManager;
 public class Init {
 
     //public static final String CIUDAD_PRUEBA = "burma14.dat";
-    public static final int CANTIDAD_INDIVIDUOS = 100;
+    public static final int CANTIDAD_INDIVIDUOS = 200;
     //4 objetivos public static final int CANTIDAD_ITERACIONES = 700;
-    public static final int CANTIDAD_ITERACIONES = 2000;
+    public static final int CANTIDAD_ITERACIONES = 10000;
     //public static final Double RADIO_FITNESS_SHARING = 10.0;
     public static final Double RADIO_FITNESS_SHARING = 0.05;//2.0;
 
@@ -64,6 +66,14 @@ public class Init {
             monitorThread.start();
             for (int i = 0; i < CANTIDAD_INDIVIDUOS; i++) {
 
+//                Individuo indiv = individuos.get(i);
+//                for (int ii = 0; ii < indiv.cromosomas.size(); ii++) {
+//
+//                    Double elemento = Precision.round(indiv.cromosomas.get(ii), 3, BigDecimal.ROUND_HALF_UP);
+//                    indiv.cromosomas.set(ii, elemento);
+//
+//                }
+
                 Callable<Individuo> worker = individuos.get(i);
 
                 Future<Individuo> submit = executor.submit(worker);
@@ -93,7 +103,7 @@ public class Init {
 
             //individuos.addAll(poblacionPareto);
             ArrayList<Individuo> individuosBackup = new ArrayList<>();
-            //individuosBackup.addAll(individuos);
+            individuosBackup.addAll(individuos);
             log.info("***cant individuos de la iteracion " + individuos.size() + "***");
             poblacionPareto.addAll(GA.getIndividuosNoDominados(individuos));
             poblacionPareto = GA.getIndividuosNoDominados(poblacionPareto);
@@ -109,7 +119,8 @@ public class Init {
 
             ArrayList<Individuo> poblacionIntermedia = new ArrayList<>();
 
-            poblacionPareto = GA.calcularFitnessSharing(poblacionPareto, RADIO_FITNESS_SHARING);
+//            poblacionPareto = GA.calcularFitnessSharing(poblacionPareto, RADIO_FITNESS_SHARING);
+            poblacionPareto = GA.calcularStrength(poblacionPareto,individuosBackup);
 
             poblacionPareto = GA.calcularFDA(poblacionPareto);
 
@@ -151,6 +162,13 @@ public class Init {
         for (Individuo elemento : poblacionPareto) {
 
             log.info("cromosomas: " + Arrays.toString(elemento.cromosomas.toArray()));
+            //log.info("resultado: " + Arrays.toString(elemento.resultadoSolucionActual.toArray()));
+
+        }
+
+        for (Individuo elemento : poblacionPareto) {
+
+            //log.info("cromosomas: " + Arrays.toString(elemento.cromosomas.toArray()));
             log.info("resultado: " + Arrays.toString(elemento.resultadoSolucionActual.toArray()));
 
         }
