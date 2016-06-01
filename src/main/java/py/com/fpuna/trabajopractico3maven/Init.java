@@ -26,14 +26,11 @@ import org.apache.logging.log4j.LogManager;
 public class Init {
 
     //public static final String CIUDAD_PRUEBA = "burma14.dat";
-    public static final int CANTIDAD_INDIVIDUOS = 50;
+    public static final int CANTIDAD_INDIVIDUOS = 100;
     //4 objetivos public static final int CANTIDAD_ITERACIONES = 700;
-    public static final int CANTIDAD_ITERACIONES = 300;
+    public static final int CANTIDAD_ITERACIONES = 2000;
     //public static final Double RADIO_FITNESS_SHARING = 10.0;
-    public static final Double RADIO_FITNESS_SHARING = 0.5;//1.0;
-    
-
-
+    public static final Double RADIO_FITNESS_SHARING = 0.05;//2.0;
 
     public static Individuo mejorGlobal = null;
 
@@ -90,11 +87,17 @@ public class Init {
                 }
             }
 
-            individuos.addAll(poblacionPareto);
+            if (j + 1 == CANTIDAD_ITERACIONES) {
+                break;
+            }
+
+            //individuos.addAll(poblacionPareto);
             ArrayList<Individuo> individuosBackup = new ArrayList<>();
-            individuosBackup.addAll(individuos);
-            poblacionPareto = GA.getIndividuosNoDominados(individuos);
-            log.info("***pareto de la iteracion "+(j+1)+"***");
+            //individuosBackup.addAll(individuos);
+            log.info("***cant individuos de la iteracion " + individuos.size() + "***");
+            poblacionPareto.addAll(GA.getIndividuosNoDominados(individuos));
+            poblacionPareto = GA.getIndividuosNoDominados(poblacionPareto);
+            //verificar que no se empiecen a dominar entre ellos
 
             for (Individuo elemento : poblacionPareto) {
 
@@ -102,7 +105,7 @@ public class Init {
                 log.debug("resultado: " + Arrays.toString(elemento.resultadoSolucionActual.toArray()));
 
             }
-            individuos.addAll(individuosBackup);
+            //individuos.addAll(individuosBackup);
 
             ArrayList<Individuo> poblacionIntermedia = new ArrayList<>();
 
@@ -117,10 +120,30 @@ public class Init {
             //GA.calcularFDA(individuos);
             //se generan nuevos individuos a partir de la poblacion vieja
             //ArrayList<Individuo> nuevaPoblacion = GA.generarNuevosIndividuos(individuos);
-            poblacionIntermedia = GA.realizarCrossover(poblacionPareto, individuos);
+            poblacionIntermedia = new ArrayList<>();
+            poblacionIntermedia.addAll(GA.realizarCrossover(poblacionPareto));
 
+//            for (Individuo i : poblacionIntermedia) {
+//
+//                if (i.resultadoSolucionActual == null) {
+//
+//                    log.error("ndi");
+//
+//                }
+//
+//            }
             poblacionIntermedia = GA.realizarMutacion(poblacionIntermedia);
-            individuos = poblacionIntermedia;
+
+            if (j % 500 == 0) {
+                for (Individuo elemento : poblacionPareto) {
+                    log.info("cromosomas: " + Arrays.toString(elemento.cromosomas.toArray()));
+                    log.info("resultado: " + Arrays.toString(elemento.resultadoSolucionActual.toArray()));
+                }
+                log.info("continuamos");
+            }
+
+            individuos = new ArrayList<>();
+            individuos.addAll(poblacionIntermedia);
 
         }
         log.info("***frente pareto encontrado***");
