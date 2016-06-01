@@ -6,6 +6,7 @@
 package py.com.fpuna.trabajopractico3maven;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -16,6 +17,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import org.apache.commons.math3.util.Precision;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 
@@ -26,14 +28,11 @@ import org.apache.logging.log4j.LogManager;
 public class Init {
 
     //public static final String CIUDAD_PRUEBA = "burma14.dat";
-    public static final int CANTIDAD_INDIVIDUOS = 50;
+    public static final int CANTIDAD_INDIVIDUOS = 200;
     //4 objetivos public static final int CANTIDAD_ITERACIONES = 700;
-    public static final int CANTIDAD_ITERACIONES = 300;
+    public static final int CANTIDAD_ITERACIONES = 10000;
     //public static final Double RADIO_FITNESS_SHARING = 10.0;
-    public static final Double RADIO_FITNESS_SHARING = 0.5;//1.0;
-    
-
-
+    public static final Double RADIO_FITNESS_SHARING = 0.05;//2.0;
 
     public static Individuo mejorGlobal = null;
 
@@ -67,6 +66,14 @@ public class Init {
             monitorThread.start();
             for (int i = 0; i < CANTIDAD_INDIVIDUOS; i++) {
 
+//                Individuo indiv = individuos.get(i);
+//                for (int ii = 0; ii < indiv.cromosomas.size(); ii++) {
+//
+//                    Double elemento = Precision.round(indiv.cromosomas.get(ii), 3, BigDecimal.ROUND_HALF_UP);
+//                    indiv.cromosomas.set(ii, elemento);
+//
+//                }
+
                 Callable<Individuo> worker = individuos.get(i);
 
                 Future<Individuo> submit = executor.submit(worker);
@@ -90,11 +97,17 @@ public class Init {
                 }
             }
 
-            individuos.addAll(poblacionPareto);
+            if (j + 1 == CANTIDAD_ITERACIONES) {
+                break;
+            }
+
+            //individuos.addAll(poblacionPareto);
             ArrayList<Individuo> individuosBackup = new ArrayList<>();
             individuosBackup.addAll(individuos);
-            poblacionPareto = GA.getIndividuosNoDominados(individuos);
-            log.info("***pareto de la iteracion "+(j+1)+"***");
+            log.info("***cant individuos de la iteracion " + individuos.size() + "***");
+            poblacionPareto.addAll(GA.getIndividuosNoDominados(individuos));
+            poblacionPareto = GA.getIndividuosNoDominados(poblacionPareto);
+            //verificar que no se empiecen a dominar entre ellos
 
             for (Individuo elemento : poblacionPareto) {
 
@@ -102,11 +115,12 @@ public class Init {
                 log.debug("resultado: " + Arrays.toString(elemento.resultadoSolucionActual.toArray()));
 
             }
-            individuos.addAll(individuosBackup);
+            //individuos.addAll(individuosBackup);
 
             ArrayList<Individuo> poblacionIntermedia = new ArrayList<>();
 
-            poblacionPareto = GA.calcularFitnessSharing(poblacionPareto, RADIO_FITNESS_SHARING);
+//            poblacionPareto = GA.calcularFitnessSharing(poblacionPareto, RADIO_FITNESS_SHARING);
+            poblacionPareto = GA.calcularStrength(poblacionPareto,individuosBackup);
 
             poblacionPareto = GA.calcularFDA(poblacionPareto);
 
@@ -117,10 +131,30 @@ public class Init {
             //GA.calcularFDA(individuos);
             //se generan nuevos individuos a partir de la poblacion vieja
             //ArrayList<Individuo> nuevaPoblacion = GA.generarNuevosIndividuos(individuos);
-            poblacionIntermedia = GA.realizarCrossover(poblacionPareto, individuos);
+            poblacionIntermedia = new ArrayList<>();
+            poblacionIntermedia.addAll(GA.realizarCrossover(poblacionPareto));
 
+//            for (Individuo i : poblacionIntermedia) {
+//
+//                if (i.resultadoSolucionActual == null) {
+//
+//                    log.error("ndi");
+//
+//                }
+//
+//            }
             poblacionIntermedia = GA.realizarMutacion(poblacionIntermedia);
-            individuos = poblacionIntermedia;
+
+            if (j % 500 == 0) {
+                for (Individuo elemento : poblacionPareto) {
+                    log.info("cromosomas: " + Arrays.toString(elemento.cromosomas.toArray()));
+                    log.info("resultado: " + Arrays.toString(elemento.resultadoSolucionActual.toArray()));
+                }
+                log.info("continuamos");
+            }
+
+            individuos = new ArrayList<>();
+            individuos.addAll(poblacionIntermedia);
 
         }
         log.info("***frente pareto encontrado***");
@@ -128,6 +162,13 @@ public class Init {
         for (Individuo elemento : poblacionPareto) {
 
             log.info("cromosomas: " + Arrays.toString(elemento.cromosomas.toArray()));
+            //log.info("resultado: " + Arrays.toString(elemento.resultadoSolucionActual.toArray()));
+
+        }
+
+        for (Individuo elemento : poblacionPareto) {
+
+            //log.info("cromosomas: " + Arrays.toString(elemento.cromosomas.toArray()));
             log.info("resultado: " + Arrays.toString(elemento.resultadoSolucionActual.toArray()));
 
         }

@@ -5,12 +5,15 @@
  */
 package py.com.fpuna.trabajopractico3maven;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Random;
 import java.util.concurrent.Callable;
 import java.util.function.BinaryOperator;
+import org.apache.commons.math3.util.Precision;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -23,7 +26,7 @@ public class GA {
     static public final Integer CANTIDAD_GENES = 20;
     public static final int CANTIDAD_OBJETIVOS = 8;
     static public final Double CROSSOVER_RATE = 0.25;
-    static public final Double MUTACION_RATE = 0.10;
+    static public final Double MUTACION_RATE = 0.05;
     static public final Double[] EXTREMOS = {0.0, 1.0};
     static public ArrayList<Double> funcionDistribucionAcumulativa;
     static final Logger log = LogManager.getLogger(GA.class.getName());
@@ -134,6 +137,7 @@ public class GA {
 
                 Random rand = new Random();
                 Double randomNum = EXTREMOS[0] + (EXTREMOS[1] - EXTREMOS[0]) * rand.nextDouble();
+                //randomNum = Precision.round(randomNum, 3, BigDecimal.ROUND_HALF_UP);
                 elemento.cromosomas.add(randomNum);
 
             }
@@ -208,10 +212,13 @@ public class GA {
         return nuevosIndividuos;
     }
 
-    static ArrayList<Individuo> realizarCrossover(ArrayList<Individuo> PoblacionPareto, ArrayList<Individuo> Poblacion) {
+    static ArrayList<Individuo> realizarCrossover(ArrayList<Individuo> PoblacionPareto) {
         //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 
         ArrayList<Individuo> nuevaPoblacion = new ArrayList<>();
+        nuevaPoblacion.addAll(PoblacionPareto);
+        ArrayList<Individuo> Poblacion = new ArrayList<>();
+        Poblacion.addAll(PoblacionPareto);
 
         while (nuevaPoblacion.size() < Init.CANTIDAD_INDIVIDUOS) {
 
@@ -307,6 +314,7 @@ public class GA {
                 ArrayList<Double> distanciaE = getDistanciaEuclidiana.apply(
                         individuo.resultadoSolucionActual,
                         individuoASerAsignado.resultadoSolucionActual);
+                log.debug("distanciaE: " + distanciaE);
                 if (distanciaE.get(0) <= RADIO_FITNESS_SHARING) {
                     if (distanciaE.get(0) > 0.0) {
                         contadorVecinos++;
@@ -341,6 +349,61 @@ public class GA {
         }
 
         return resultado;
+
+    }
+
+    static ArrayList<Individuo> podarPoblacion(ArrayList<Individuo> poblacionIntermedia) {
+
+        ArrayList<Individuo> resultado = new ArrayList<>();
+
+        while (resultado.size() > Init.CANTIDAD_INDIVIDUOS) {
+
+            Integer contador = 0;
+            for (Individuo elemento : resultado) {
+                Double rnd = Math.random();
+
+                if (rnd < elemento.funcionDistribucionAcumulativa) {
+                    //entra si no tiene tantos vecinos
+                    resultado.add(elemento);
+                }
+                contador++;
+
+            }
+
+        }
+
+        return resultado;
+
+    }
+
+    static ArrayList<Individuo> calcularStrength(ArrayList<Individuo> poblacionPareto, ArrayList<Individuo> individuosDominados) {
+        //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+
+        for (Individuo elemento : poblacionPareto) {
+
+            elemento.strengh = 0.0;
+            for (Individuo elementoDominado : individuosDominados) {
+
+                elementoDominado.dominado = false;
+                elementoDominado = ese2dominado.apply(elemento, elementoDominado);
+                if (elementoDominado.dominado) {
+
+                    elemento.strengh++;
+
+                }
+
+            }
+            elemento.coeficienteFitnessSharing=elemento.strengh;
+
+        }
+//
+//        for (Individuo elemento : poblacionPareto) {
+//
+//            elemento.coeficienteFitnessSharing = 1 / (1 + elemento.strengh);
+//
+//    
+//        }
+        return poblacionPareto;
 
     }
 
