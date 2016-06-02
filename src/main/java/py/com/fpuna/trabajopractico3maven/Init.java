@@ -192,6 +192,7 @@ public class Init {
         initListaCiudades();
 
         ArrayList<Hormiga> hormigas = new ArrayList<>();
+        ArrayList<Hormiga> laBolsa = new ArrayList<>();
 
         ciudades1 = leerArchivo1();
         ciudades2 = leerArchivo2();
@@ -245,6 +246,15 @@ public class Init {
 
             setIndividuosNoDominados(hormigas);
 
+            for (Hormiga hormiga : hormigas) {
+
+                if (!hormiga.dominado) {
+                    //meter en la bolsa
+                    laBolsa.add(hormiga);
+                }
+
+            }
+
             actualizarFeromonas1(hormigas);
             actualizarFeromonas2(hormigas);
 
@@ -258,10 +268,21 @@ public class Init {
 
         log.info("***soluciones finales***");
 
-        for (Hormiga hormiga : hormigas) {
+        setIndividuosNoDominados(laBolsa);
+        for (Hormiga hormiga : laBolsa) {
+            if (hormiga.dominado == false) {
+                log.info("" + Arrays.toString(hormiga.ciudades.toArray()));
+                //log.info("tours: " + hormiga.resultadoSolucionActual.get(0) + " " + hormiga.resultadoSolucionActual.get(1));
 
-            //log.info("" + Arrays.toString(hormiga.ciudades.toArray()));
-            log.info("tours: " + hormiga.resultadoSolucionActual.get(0) + " " + hormiga.resultadoSolucionActual.get(1));
+            }
+        }
+
+        for (Hormiga hormiga : laBolsa) {
+            if (hormiga.dominado == false) {
+                //log.info("" + Arrays.toString(hormiga.ciudades.toArray()));
+                log.info("tours: " + hormiga.resultadoSolucionActual.get(0) + " " + hormiga.resultadoSolucionActual.get(1));
+            }
+
         }
 
     }
