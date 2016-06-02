@@ -23,6 +23,8 @@ public class Hormiga implements Callable {
 
     static final Logger log = LogManager.getLogger(Hormiga.class.getName());
     boolean dominado = false; //no dominado hasta que se diga lo contrario
+    ArrayList<Double> resultadoSolucionActual;
+    Integer posEnElArray;
 
     public Hormiga() {
 
@@ -75,16 +77,16 @@ public class Hormiga implements Callable {
 
             FDAS = getFDAS(ciudades.get(ciudades.size() - 1), ciudadesNoVisitadas);
             int contador = 0;
-            Integer siguienteCiudad=0;
+            Integer siguienteCiudad = 0;
             for (Double fda : FDAS) {
-            
+
                 siguienteCiudad = Integer.valueOf(ciudadesNoVisitadas.get(contador));
-                if (realizoPaso < fda){
+                if (realizoPaso < fda) {
                     //quiere decir que saltamos a esta ciudad
                     break;
                 }
                 contador++;
-            
+
             }
 
             ciudades.add(siguienteCiudad);
@@ -119,7 +121,6 @@ public class Hormiga implements Callable {
 //        return resultado;
 //
 //    }
-
 //    private double getSumatoriaOtrasVisibilidadesPosibles(ArrayList<ArrayList<Double>> visibilidades, ArrayList<ArrayList<Double>> feromonas, Hormiga hormiga, Integer ciudadActual, Integer ciudadSiguiente) {
 //        //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 //
@@ -144,7 +145,6 @@ public class Hormiga implements Callable {
 //        return resultado == 0.0 ? 1.0 : resultado;
 //
 //    }
-
 //    private double getSumatoriaOtrasFeromonasPosibles(ArrayList<ArrayList<Double>> visibilidades, Hormiga hormiga, Integer ciudadActual, Integer ciudadSiguiente) {
 //        //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 //
@@ -166,7 +166,6 @@ public class Hormiga implements Callable {
 //        return resultado;
 //
 //    }
-
     private ArrayList<Double> getFDAS(Integer ciudadActual, ArrayList<String> ciudadesNoVisitadas) {
 
         ArrayList<Double> fdas = new ArrayList<>();
@@ -175,16 +174,18 @@ public class Hormiga implements Callable {
         ArrayList<Double> tausxvis = new ArrayList<>();
         Double tausxvistotal = 0.0;
 
+        Double lambda = (Double.valueOf(this.posEnElArray.toString()) - 1) / (Init.CANTIDAD_INDIVIDUOS - 1);
+
         for (String ciudadNoVisitada : ciudadesNoVisitadas) {
 
             //calcular tau por visibilidad
             Double elemento = 0.0;
             elemento = Math.pow(Init.feromonas1.get(ciudadActual).get(Integer.valueOf(ciudadNoVisitada)),
-                    Init.ALFA)
-                    *  Math.pow(Init.feromonas2.get(ciudadActual).get(Integer.valueOf(ciudadNoVisitada)),
-                    Init.ALFA)
-                    * Math.pow(Init.visibilidades1.get(ciudadActual).get(Integer.valueOf(ciudadNoVisitada)), Init.BETA)
-                    * Math.pow(Init.visibilidades2.get(ciudadActual).get(Integer.valueOf(ciudadNoVisitada)), Init.BETA);
+                    Init.ALFA * (lambda))
+                    * Math.pow(Init.feromonas2.get(ciudadActual).get(Integer.valueOf(ciudadNoVisitada)),
+                            Init.ALFA * (1 - lambda))
+                    * Math.pow(Init.visibilidades1.get(ciudadActual).get(Integer.valueOf(ciudadNoVisitada)), Init.BETA * lambda)
+                    * Math.pow(Init.visibilidades2.get(ciudadActual).get(Integer.valueOf(ciudadNoVisitada)), Init.BETA * (1 - lambda));
             tausxvis.add(elemento);
             tausxvistotal += elemento;
 

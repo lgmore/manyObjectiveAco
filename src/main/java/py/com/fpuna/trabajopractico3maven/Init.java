@@ -17,6 +17,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.function.BinaryOperator;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 
@@ -212,6 +213,7 @@ public class Init {
             for (int i = 0; i < CANTIDAD_INDIVIDUOS; i++) {
 //
                 Hormiga indiv = new Hormiga();
+                indiv.posEnElArray = i + 1;
 //                for (int ii = 0; ii < indiv.cromosomas.size(); ii++) {
 ////
 ////                    Double elemento = Precision.round(indiv.cromosomas.get(ii), 3, BigDecimal.ROUND_HALF_UP);
@@ -241,22 +243,11 @@ public class Init {
                 }
             }
 
+            setIndividuosNoDominados(hormigas);
+
             actualizarFeromonas1(hormigas);
             actualizarFeromonas2(hormigas);
 
-//            log.info("***feromonas***");
-//
-//            for (ArrayList<Double> elemento : Init.feromonas) {
-//
-//                StringBuilder tester = new StringBuilder();
-//                DecimalFormat df = new DecimalFormat("#.000");
-//                for (int jj = 0; jj < elemento.size(); jj++) {
-//
-//                    tester.append(df.format(elemento.get(jj))).append(" ");
-//                }
-//                log.debug("" + tester.toString());
-//
-//            }
             for (Hormiga hormiga : hormigas) {
                 log.info("solucion: " + Arrays.asList(hormiga.ciudades.toArray()));
             }
@@ -269,30 +260,10 @@ public class Init {
 
         for (Hormiga hormiga : hormigas) {
 
-            log.info("" + Arrays.toString(hormiga.ciudades.toArray()));
-
+            //log.info("" + Arrays.toString(hormiga.ciudades.toArray()));
+            log.info("tours: " + hormiga.resultadoSolucionActual.get(0) + " " + hormiga.resultadoSolucionActual.get(1));
         }
 
-//        log.info("lista feromonas");
-//        for (ArrayList<Double> elemento : Init.feromonas) {
-//
-//            log.info("" + Arrays.toString(elemento.toArray()));
-//
-//        }
-        //    private static void printMatrizFeromonas() {
-        //
-        //        log.info("matriz feromonas: ");
-        //        for (int fila = 0; fila < CANTIDAD_CIUDADES; fila++) {
-        //            StringBuilder strb = new StringBuilder();
-        //            for (int columna = 0; columna < CANTIDAD_CIUDADES; columna++) {
-        //
-        //                strb.append(GA.matrizFeromonas[fila][columna]).append(" ");
-        //
-        //            }
-        //            log.info(strb.toString());
-        //
-        //        }
-        //
     }
 
     private static ArrayList<ArrayList<Double>> inicializarVisibilidades(ArrayList<ArrayList<Double>> ciudades) {
@@ -336,7 +307,6 @@ public class Init {
         log.debug("termino de actualizar feromonas");
     }
 
-
     private static void actualizarFeromonas2(ArrayList<Hormiga> hormigas) {
         //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
         int fila, columna = 0;
@@ -365,6 +335,11 @@ public class Init {
         Double resultado = 0.0;
         for (Hormiga hormiga : hormigas) {
 
+            if (hormiga.dominado) {
+//con esto nos aseguramos que los dominados no actualicen
+                continue;
+            }
+
             Integer indiceCiudadActual = hormiga.ciudades.indexOf(ciudadActual);
             Integer indiceCiudadSiguiente = hormiga.ciudades.indexOf(siguienteCiudad);
             //la hormiga definitivamente recorrio todas las ciudades,
@@ -392,6 +367,11 @@ public class Init {
         //verificar si la hormiga uso el tour
         Double resultado = 0.0;
         for (Hormiga hormiga : hormigas) {
+
+            if (hormiga.dominado) {
+                //con esto nos aseguramos que los dominados no actualicen
+                continue;
+            }
 
             Integer indiceCiudadActual = hormiga.ciudades.indexOf(ciudadActual);
             Integer indiceCiudadSiguiente = hormiga.ciudades.indexOf(siguienteCiudad);
@@ -466,5 +446,54 @@ public class Init {
         return resultado;
         //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
+
+    public static void setIndividuosNoDominados(ArrayList<Hormiga> hormigas) {
+
+        for (Hormiga hormiga : hormigas) {
+
+            hormiga.dominado = false;
+            hormiga.resultadoSolucionActual = new ArrayList<>();
+            hormiga.resultadoSolucionActual.add(Init.getCostoTour1(hormiga));
+            hormiga.resultadoSolucionActual.add(Init.getCostoTour2(hormiga));
+
+        }
+
+        for (int i = 0; i < hormigas.size() - 1; i++) {
+            for (int j = i + 1; j < hormigas.size(); j++) {
+
+                Hormiga indiv1 = hormigas.get(i);
+                Hormiga indiv2 = hormigas.get(j);
+                indiv2 = ese2dominado.apply(indiv1, indiv2);
+                hormigas.remove(j);
+                hormigas.add(indiv2);
+            }
+
+        }
+
+    }
+
+    static BinaryOperator<Hormiga> ese2dominado = (e1, e2) -> {
+
+        ArrayList<Double> fitnesse1 = e1.resultadoSolucionActual;
+        ArrayList<Double> fitnesse2 = e2.resultadoSolucionActual;
+
+        boolean esMayorOIgualEnTodosLosObjetivos = true;
+
+        for (int j = 0; j < fitnesse1.size(); j++) {
+
+            if (fitnesse2.get(j) < fitnesse1.get(j)) {
+
+                esMayorOIgualEnTodosLosObjetivos = false;
+                break;
+            }
+
+        }
+
+        if (esMayorOIgualEnTodosLosObjetivos) {
+            e2.dominado = true;
+        }
+
+        return e2;
+    };
 
 }
