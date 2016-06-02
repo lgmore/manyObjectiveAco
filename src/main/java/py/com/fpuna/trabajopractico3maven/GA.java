@@ -5,15 +5,10 @@
  */
 package py.com.fpuna.trabajopractico3maven;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.Random;
-import java.util.concurrent.Callable;
 import java.util.function.BinaryOperator;
-import org.apache.commons.math3.util.Precision;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -31,18 +26,18 @@ public class GA {
     static public ArrayList<Double> funcionDistribucionAcumulativa;
     static final Logger log = LogManager.getLogger(GA.class.getName());
 
-    public static ArrayList<Individuo> getIndividuosNoDominados(ArrayList<Individuo> individuos) {
+    public static ArrayList<Hormiga> getIndividuosNoDominados(ArrayList<Hormiga> individuos) {
 
-        ArrayList<Individuo> nuevaPoblacion = new ArrayList<>();
+        ArrayList<Hormiga> nuevaPoblacion = new ArrayList<>();
 
         while (individuos.size() > 0) {
 
-            Individuo indiv = individuos.remove(0);
+            Hormiga indiv = individuos.remove(0);
 
             if (individuos.size() <= 0) { //hacer la comparacion contra los individuos no dominados
                 //obtenidos hasta ahora
 
-                for (Individuo elemento : nuevaPoblacion) {
+                for (Hormiga elemento : nuevaPoblacion) {
 
                     indiv = ese2dominado.apply(elemento, indiv);
 
@@ -50,7 +45,7 @@ public class GA {
 
             } else {
 
-                for (Individuo elemento : individuos) {
+                for (Hormiga elemento : individuos) {
 
                     indiv = ese2dominado.apply(elemento, indiv);
                     if (indiv.dominado == true) {
@@ -58,7 +53,7 @@ public class GA {
                     }
                 }
 
-                for (Individuo elemento : nuevaPoblacion) {
+                for (Hormiga elemento : nuevaPoblacion) {
 
                     indiv = ese2dominado.apply(elemento, indiv);
                     if (indiv.dominado == true) {
@@ -98,7 +93,7 @@ public class GA {
 
             };
 
-    static BinaryOperator<Individuo> ese2dominado = (e1, e2) -> {
+    static BinaryOperator<Hormiga> ese2dominado = (e1, e2) -> {
 
         ArrayList<Double> fitnesse1 = e1.resultadoSolucionActual;
         ArrayList<Double> fitnesse2 = e2.resultadoSolucionActual;
@@ -122,15 +117,15 @@ public class GA {
         return e2;
     };
 
-    static ArrayList<Individuo> inicializarIndividuos(Integer cantidadIndividuos) {
+    static ArrayList<Hormiga> inicializarIndividuos(Integer cantidadIndividuos) {
         //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-        ArrayList<Individuo> resultado = new ArrayList<>();
+        ArrayList<Hormiga> resultado = new ArrayList<>();
 
         Double minimum = EXTREMOS[0];
         Double maximum = EXTREMOS[1] - EXTREMOS[0];
 
         for (int j = 0; j < cantidadIndividuos; j++) {
-            Individuo elemento = new Individuo();
+            Hormiga elemento = new Hormiga();
             elemento.cromosomas = new ArrayList<>();
 
             for (int i = 0; i < CANTIDAD_GENES; i++) {
@@ -150,14 +145,14 @@ public class GA {
 
     }
 
-    static ArrayList<Individuo> calcularFDA(ArrayList<Individuo> individuos) {
+    static ArrayList<Hormiga> calcularFDA(ArrayList<Hormiga> individuos) {
 
-        ArrayList<Individuo> resultado = individuos;
+        ArrayList<Hormiga> resultado = individuos;
 
         Double totalFitness = 0.0;
         Double totalFDA = 0.0;
 
-        for (Individuo elemento : resultado) {
+        for (Hormiga elemento : resultado) {
 
             totalFDA += elemento.coeficienteFitnessSharing;
 
@@ -165,7 +160,7 @@ public class GA {
 
         Double totalAnterior = 0.0;
 
-        for (Individuo elemento : resultado) {
+        for (Hormiga elemento : resultado) {
 
             elemento.funcionDistribucionAcumulativa = (totalAnterior + elemento.coeficienteFitnessSharing) / totalFDA;
             totalAnterior += elemento.coeficienteFitnessSharing;
@@ -183,7 +178,7 @@ public class GA {
         //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
-    static ArrayList<Individuo> generarNuevosIndividuos(ArrayList<Individuo> individuos) {
+    static ArrayList<Hormiga> generarNuevosIndividuos(ArrayList<Hormiga> individuos) {
         //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 
 //        // ordeno por si las dudas
@@ -191,13 +186,13 @@ public class GA {
 //                (Individuo fruit2, Individuo fruit1)
 //                -> fruit1.funcionDistribucionAcumulativa.compareTo(
 //                        fruit2.funcionDistribucionAcumulativa));
-        ArrayList<Individuo> nuevosIndividuos = new ArrayList<>();
+        ArrayList<Hormiga> nuevosIndividuos = new ArrayList<>();
 
         while (nuevosIndividuos.size() < individuos.size()) {
 
             Double numeroRandom = Math.random();
 
-            for (Individuo elemento : individuos) {
+            for (Hormiga elemento : individuos) {
 
                 if (numeroRandom <= elemento.funcionDistribucionAcumulativa) {
 
@@ -212,12 +207,12 @@ public class GA {
         return nuevosIndividuos;
     }
 
-    static ArrayList<Individuo> realizarCrossover(ArrayList<Individuo> PoblacionPareto) {
+    static ArrayList<Hormiga> realizarCrossover(ArrayList<Hormiga> PoblacionPareto) {
         //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 
-        ArrayList<Individuo> nuevaPoblacion = new ArrayList<>();
+        ArrayList<Hormiga> nuevaPoblacion = new ArrayList<>();
         nuevaPoblacion.addAll(PoblacionPareto);
-        ArrayList<Individuo> Poblacion = new ArrayList<>();
+        ArrayList<Hormiga> Poblacion = new ArrayList<>();
         Poblacion.addAll(PoblacionPareto);
 
         while (nuevaPoblacion.size() < Init.CANTIDAD_INDIVIDUOS) {
@@ -225,8 +220,8 @@ public class GA {
             //seleccionar uno del frente pareto
             Double rnd = Math.random();
 
-            Individuo ladoPareto = null;
-            for (Individuo elemento : PoblacionPareto) {
+            Hormiga ladoPareto = null;
+            for (Hormiga elemento : PoblacionPareto) {
                 if (rnd <= elemento.funcionDistribucionAcumulativa) {
 
                     ladoPareto = elemento;
@@ -238,14 +233,14 @@ public class GA {
             Random rn2 = new Random();
             Integer posLadoPoblacion = rn2.nextInt(Poblacion.size());
 
-            Individuo ladoPoblacion = Poblacion.get(posLadoPoblacion);
+            Hormiga ladoPoblacion = Poblacion.get(posLadoPoblacion);
 
             Integer puntoCrossover = rn2.nextInt(CANTIDAD_GENES);
             ArrayList<Double> cromosomasCrossover = new ArrayList<>();
             cromosomasCrossover.addAll(ladoPareto.cromosomas.subList(0, puntoCrossover));
             cromosomasCrossover.addAll(ladoPoblacion.cromosomas.subList(puntoCrossover, CANTIDAD_GENES));
 
-            Individuo resultado = new Individuo();
+            Hormiga resultado = new Hormiga();
             resultado.cromosomas = cromosomasCrossover;
             nuevaPoblacion.add(resultado);
 
@@ -254,10 +249,10 @@ public class GA {
         return nuevaPoblacion;
     }
 
-    static ArrayList<Individuo> realizarMutacion(ArrayList<Individuo> Poblacion) {
+    static ArrayList<Hormiga> realizarMutacion(ArrayList<Hormiga> Poblacion) {
         //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
         Double cantidadGenes = (double) Poblacion.size() * CANTIDAD_GENES;
-        ArrayList<Individuo> nuevaPoblacion = Poblacion;
+        ArrayList<Hormiga> nuevaPoblacion = Poblacion;
 
         Double numeroMutaciones;
         numeroMutaciones = (MUTACION_RATE * cantidadGenes);
@@ -296,20 +291,20 @@ public class GA {
 
     }
 
-    static ArrayList<Individuo> calcularFitnessSharing(ArrayList<Individuo> poblacionPareto, Double RADIO_FITNESS_SHARING) {
+    static ArrayList<Hormiga> calcularFitnessSharing(ArrayList<Hormiga> poblacionPareto, Double RADIO_FITNESS_SHARING) {
         //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 
-        ArrayList<Individuo> resultado = poblacionPareto;
+        ArrayList<Hormiga> resultado = poblacionPareto;
 
-        Collections.sort(resultado, (Individuo elemento2, Individuo elemento1)
+        Collections.sort(resultado, (Hormiga elemento2, Hormiga elemento1)
                 -> elemento1.resultadoSolucionActual.get(0)
                 .compareTo(elemento2.resultadoSolucionActual
                         .get(0)));
 
-        for (Individuo individuo : resultado) {
+        for (Hormiga individuo : resultado) {
 
             Double contadorVecinos = 0.0;
-            for (Individuo individuoASerAsignado : resultado) {
+            for (Hormiga individuoASerAsignado : resultado) {
 
                 ArrayList<Double> distanciaE = getDistanciaEuclidiana.apply(
                         individuo.resultadoSolucionActual,
@@ -327,7 +322,7 @@ public class GA {
 
             individuo.coeficienteFitnessSharing = 1 / (1 + contadorVecinos);
 
-            for (Individuo individuoASerAsignado : resultado) {
+            for (Hormiga individuoASerAsignado : resultado) {
 
                 ArrayList<Double> distanciaE = getDistanciaEuclidiana.apply(
                         individuo.resultadoSolucionActual,
@@ -342,7 +337,7 @@ public class GA {
 
         }
 
-        for (Individuo elemento : resultado) {
+        for (Hormiga elemento : resultado) {
 
             log.debug("fitness sharing : " + elemento.coeficienteFitnessSharing);
 
@@ -352,14 +347,14 @@ public class GA {
 
     }
 
-    static ArrayList<Individuo> podarPoblacion(ArrayList<Individuo> poblacionIntermedia) {
+    static ArrayList<Hormiga> podarPoblacion(ArrayList<Hormiga> poblacionIntermedia) {
 
-        ArrayList<Individuo> resultado = new ArrayList<>();
+        ArrayList<Hormiga> resultado = new ArrayList<>();
 
         while (resultado.size() > Init.CANTIDAD_INDIVIDUOS) {
 
             Integer contador = 0;
-            for (Individuo elemento : resultado) {
+            for (Hormiga elemento : resultado) {
                 Double rnd = Math.random();
 
                 if (rnd < elemento.funcionDistribucionAcumulativa) {
@@ -376,13 +371,13 @@ public class GA {
 
     }
 
-    static ArrayList<Individuo> calcularStrength(ArrayList<Individuo> poblacionPareto, ArrayList<Individuo> individuosDominados) {
+    static ArrayList<Hormiga> calcularStrength(ArrayList<Hormiga> poblacionPareto, ArrayList<Hormiga> individuosDominados) {
         //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 
-        for (Individuo elemento : poblacionPareto) {
+        for (Hormiga elemento : poblacionPareto) {
 
             elemento.strengh = 0.0;
-            for (Individuo elementoDominado : individuosDominados) {
+            for (Hormiga elementoDominado : individuosDominados) {
 
                 elementoDominado.dominado = false;
                 elementoDominado = ese2dominado.apply(elemento, elementoDominado);
