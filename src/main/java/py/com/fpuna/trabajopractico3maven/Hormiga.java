@@ -102,70 +102,70 @@ public class Hormiga implements Callable {
         return this;
     }
 
-    private Double getProbabilidadPaso(Integer ciudadActual, Integer ciudadPaso, Hormiga hormiga) {
+//    private Double getProbabilidadPaso(Integer ciudadActual, Integer ciudadPaso, Hormiga hormiga) {
+//
+//        Double resultado = 0.0;
+//        //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+//        Double interm1 = Math.pow(Init.visibilidades.get(ciudadActual).get(ciudadPaso), Init.BETA);
+//        Double interm2 = Math.pow(Init.feromonas.get(ciudadActual).get(ciudadPaso), Init.ALFA);
+//        resultado = interm1 * interm2;
+//        //numerador
+//
+//        Double interm3 = getSumatoriaOtrasVisibilidadesPosibles(Init.visibilidades, Init.feromonas, hormiga, ciudadActual, ciudadPaso);
+//
+//        resultado /= interm3;
+//        //denominador
+//        log.debug("prob paso: " + resultado);
+//        return resultado;
+//
+//    }
 
-        Double resultado = 0.0;
-        //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-        Double interm1 = Math.pow(Init.visibilidades.get(ciudadActual).get(ciudadPaso), Init.BETA);
-        Double interm2 = Math.pow(Init.feromonas.get(ciudadActual).get(ciudadPaso), Init.ALFA);
-        resultado = interm1 * interm2;
-        //numerador
+//    private double getSumatoriaOtrasVisibilidadesPosibles(ArrayList<ArrayList<Double>> visibilidades, ArrayList<ArrayList<Double>> feromonas, Hormiga hormiga, Integer ciudadActual, Integer ciudadSiguiente) {
+//        //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+//
+//        Double resultado = 0.0;
+//        Integer contadorCiclos = 0;
+//        for (Integer elemento : Init.LISTA_CIUDADES) {
+//
+//            if (elemento.compareTo(ciudadActual) == 0) {
+//                //no hacer nada
+//            } else if (!hormiga.ciudades.contains(ciudadSiguiente)) {
+//                //entonces es transicion posible, hacer sumatoria
+//                resultado
+//                        += Math.pow(visibilidades.get(ciudadActual).get(ciudadSiguiente) == Double.POSITIVE_INFINITY
+//                                        ? 0.0
+//                                        : visibilidades.get(ciudadActual).get(ciudadSiguiente), Init.BETA)
+//                        * Math.pow(feromonas.get(ciudadActual).get(ciudadSiguiente) == Double.POSITIVE_INFINITY
+//                                        ? 0.0
+//                                        : feromonas.get(ciudadActual).get(ciudadSiguiente), Init.ALFA);
+//            }
+//        }
+//
+//        return resultado == 0.0 ? 1.0 : resultado;
+//
+//    }
 
-        Double interm3 = getSumatoriaOtrasVisibilidadesPosibles(Init.visibilidades, Init.feromonas, hormiga, ciudadActual, ciudadPaso);
-
-        resultado /= interm3;
-        //denominador
-        log.debug("prob paso: " + resultado);
-        return resultado;
-
-    }
-
-    private double getSumatoriaOtrasVisibilidadesPosibles(ArrayList<ArrayList<Double>> visibilidades, ArrayList<ArrayList<Double>> feromonas, Hormiga hormiga, Integer ciudadActual, Integer ciudadSiguiente) {
-        //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-
-        Double resultado = 0.0;
-        Integer contadorCiclos = 0;
-        for (Integer elemento : Init.LISTA_CIUDADES) {
-
-            if (elemento.compareTo(ciudadActual) == 0) {
-                //no hacer nada
-            } else if (!hormiga.ciudades.contains(ciudadSiguiente)) {
-                //entonces es transicion posible, hacer sumatoria
-                resultado
-                        += Math.pow(visibilidades.get(ciudadActual).get(ciudadSiguiente) == Double.POSITIVE_INFINITY
-                                        ? 0.0
-                                        : visibilidades.get(ciudadActual).get(ciudadSiguiente), Init.BETA)
-                        * Math.pow(feromonas.get(ciudadActual).get(ciudadSiguiente) == Double.POSITIVE_INFINITY
-                                        ? 0.0
-                                        : feromonas.get(ciudadActual).get(ciudadSiguiente), Init.ALFA);
-            }
-        }
-
-        return resultado == 0.0 ? 1.0 : resultado;
-
-    }
-
-    private double getSumatoriaOtrasFeromonasPosibles(ArrayList<ArrayList<Double>> visibilidades, Hormiga hormiga, Integer ciudadActual, Integer ciudadSiguiente) {
-        //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-
-        Double resultado = 0.0;
-        Integer contadorCiclos = 0;
-        for (Integer elemento : Init.LISTA_CIUDADES) {
-
-            if (elemento.compareTo(ciudadActual) == 0) {
-                //no hacer nada
-            } else if (!hormiga.ciudades.contains(ciudadSiguiente)) {
-                //entonces es transicion posible, hacer sumatoria
-                resultado
-                        += Math.pow(visibilidades.get(ciudadActual).get(ciudadSiguiente) == Double.POSITIVE_INFINITY
-                                        ? 0.0
-                                        : visibilidades.get(ciudadActual).get(ciudadSiguiente), Init.ALFA);
-            }
-        }
-
-        return resultado;
-
-    }
+//    private double getSumatoriaOtrasFeromonasPosibles(ArrayList<ArrayList<Double>> visibilidades, Hormiga hormiga, Integer ciudadActual, Integer ciudadSiguiente) {
+//        //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+//
+//        Double resultado = 0.0;
+//        Integer contadorCiclos = 0;
+//        for (Integer elemento : Init.LISTA_CIUDADES) {
+//
+//            if (elemento.compareTo(ciudadActual) == 0) {
+//                //no hacer nada
+//            } else if (!hormiga.ciudades.contains(ciudadSiguiente)) {
+//                //entonces es transicion posible, hacer sumatoria
+//                resultado
+//                        += Math.pow(visibilidades.get(ciudadActual).get(ciudadSiguiente) == Double.POSITIVE_INFINITY
+//                                        ? 0.0
+//                                        : visibilidades.get(ciudadActual).get(ciudadSiguiente), Init.ALFA);
+//            }
+//        }
+//
+//        return resultado;
+//
+//    }
 
     private ArrayList<Double> getFDAS(Integer ciudadActual, ArrayList<String> ciudadesNoVisitadas) {
 
@@ -179,9 +179,12 @@ public class Hormiga implements Callable {
 
             //calcular tau por visibilidad
             Double elemento = 0.0;
-            elemento = Math.pow(Init.feromonas.get(ciudadActual).get(Integer.valueOf(ciudadNoVisitada)),
+            elemento = Math.pow(Init.feromonas1.get(ciudadActual).get(Integer.valueOf(ciudadNoVisitada)),
                     Init.ALFA)
-                    * Math.pow(Init.visibilidades.get(ciudadActual).get(Integer.valueOf(ciudadNoVisitada)), Init.BETA);
+                    *  Math.pow(Init.feromonas2.get(ciudadActual).get(Integer.valueOf(ciudadNoVisitada)),
+                    Init.ALFA)
+                    * Math.pow(Init.visibilidades1.get(ciudadActual).get(Integer.valueOf(ciudadNoVisitada)), Init.BETA)
+                    * Math.pow(Init.visibilidades2.get(ciudadActual).get(Integer.valueOf(ciudadNoVisitada)), Init.BETA);
             tausxvis.add(elemento);
             tausxvistotal += elemento;
 
