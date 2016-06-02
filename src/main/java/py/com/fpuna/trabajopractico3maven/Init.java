@@ -27,14 +27,14 @@ import org.apache.logging.log4j.LogManager;
 public class Init {
 
     //public static final String CIUDAD_PRUEBA = "burma14.dat";
-    public static int CANTIDAD_CIUDADES = 14;
+    public static int CANTIDAD_CIUDADES = 52;
     public static Integer CIUDAD_INICIO = 0;
-    public static final int CANTIDAD_INDIVIDUOS = 10;
+    public static final int CANTIDAD_INDIVIDUOS = 100;
     //4 objetivos public static final int CANTIDAD_ITERACIONES = 700;
-    public static final int CANTIDAD_ITERACIONES = 300;
+    public static final int CANTIDAD_ITERACIONES = 10000;
     //public static final Double RADIO_FITNESS_SHARING = 10.0;
 
-    public static final String NOMBRE_ARCHIVO = "/home/lg_more/MEGAsync/maestria/AE2016CD/tp2/burma14.dat";
+    public static final String NOMBRE_ARCHIVO = "/home/lg_more/MEGAsync/maestria/AE2016CD/tp2/berlin52.dat";
     public static Hormiga mejorGlobal = null;
 
     public static ArrayList<ArrayList<Double>> ciudades;
@@ -42,12 +42,12 @@ public class Init {
     public static ArrayList<ArrayList<Double>> visibilidades;
 
     static final Logger log = LogManager.getLogger(Init.class.getName());
-    static Double BETA = 3.0;
+    static Double BETA = 5.0;
     static double ALFA = 1.0;
     private static Double Q = 10.0;
     private static final Double COEFICIENTE_VISIBILIDAD = 1.0;
     static ArrayList<Integer> LISTA_CIUDADES;
-    private static final Double COEFICIENTE_EVAPORACION = 0.05;
+    private static final Double COEFICIENTE_EVAPORACION = 0.01;
     private static final Double COEFICIENTE_FEROMONA = 1.0;
 
     public static ArrayList<ArrayList<Double>> leerArchivo() {
