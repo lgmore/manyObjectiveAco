@@ -57,35 +57,40 @@ public class Hormiga implements Callable {
     }
 
     void doRecorrido() {
-        ArrayList<String> poolPosCiudades = initListaCiudades();
+        ArrayList<String> ciudadesNoVisitadas = initListaCiudades();
+        ArrayList<Double> FDAS = new ArrayList<>();
         ciudades = new ArrayList<>();
         Random rand = new Random();
         //se elige una ciudad para iniciar
-        Integer randomPosCiudad = rand.nextInt((poolPosCiudades.size()));
+        //Integer randomPosCiudad = rand.nextInt((ciudadesNoVisitadas.size()));
 
-        ciudades.add(Init.LISTA_CIUDADES.get(Integer.valueOf(poolPosCiudades.get(randomPosCiudad))));
-        poolPosCiudades.remove(randomPosCiudad.intValue());
+        ciudades.add(Integer.valueOf(ciudadesNoVisitadas.get(Init.CIUDAD_INICIO)));
+        ciudadesNoVisitadas.remove(Init.CIUDAD_INICIO.intValue());
 
         while (ciudades.size() < Init.CANTIDAD_CIUDADES) {
             //el recorrido para al tener todas las ciudades
             Double realizoPaso;
-            Integer randomCiudad;
-            Integer RandomPos;
-            do {
-                rand = new Random();
-                realizoPaso = Math.random();
-                RandomPos = rand.nextInt((poolPosCiudades.size()));
-                //log.debug("randompos "+RandomPos);
-                //log.debug("poolPosCiudades "+poolPosCiudades.size());
-                randomCiudad = Init.LISTA_CIUDADES.get(Integer.valueOf(poolPosCiudades.get(RandomPos)));
+            rand = new Random();
+            realizoPaso = Math.random();
 
-            } while ((realizoPaso > getProbabilidadPaso(ciudades.get(ciudades.size() - 1), randomCiudad, this))
-                    || ciudades.contains(randomCiudad));
+            FDAS = getFDAS(ciudades.get(ciudades.size() - 1), ciudadesNoVisitadas);
+            int contador = 0;
+            Integer siguienteCiudad=0;
+            for (Double fda : FDAS) {
+            
+                siguienteCiudad = Integer.valueOf(ciudadesNoVisitadas.get(contador));
+                if (realizoPaso < fda){
+                    //quiere decir que saltamos a esta ciudad
+                    break;
+                }
+                contador++;
+            
+            }
 
-            ciudades.add(randomCiudad);
-            poolPosCiudades.remove(RandomPos.intValue());
+            ciudades.add(siguienteCiudad);
+            ciudadesNoVisitadas.remove(contador);
         }
-        
+
         ciudades.add(ciudades.get(0));//termina el tour al principio
 
         log.debug("solucion: ");
@@ -101,11 +106,14 @@ public class Hormiga implements Callable {
 
         Double resultado = 0.0;
         //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-        resultado = Math.pow(Init.visibilidades.get(ciudadActual).get(ciudadPaso), Init.BETA)
-                * Math.pow(Init.feromonas.get(ciudadActual).get(ciudadPaso), Init.ALFA);
+        Double interm1 = Math.pow(Init.visibilidades.get(ciudadActual).get(ciudadPaso), Init.BETA);
+        Double interm2 = Math.pow(Init.feromonas.get(ciudadActual).get(ciudadPaso), Init.ALFA);
+        resultado = interm1 * interm2;
         //numerador
 
-        resultado /= getSumatoriaOtrasVisibilidadesPosibles(Init.visibilidades, Init.feromonas, hormiga, ciudadActual, ciudadPaso);;
+        Double interm3 = getSumatoriaOtrasVisibilidadesPosibles(Init.visibilidades, Init.feromonas, hormiga, ciudadActual, ciudadPaso);
+
+        resultado /= interm3;
         //denominador
         log.debug("prob paso: " + resultado);
         return resultado;
@@ -129,7 +137,7 @@ public class Hormiga implements Callable {
                                         : visibilidades.get(ciudadActual).get(ciudadSiguiente), Init.BETA)
                         * Math.pow(feromonas.get(ciudadActual).get(ciudadSiguiente) == Double.POSITIVE_INFINITY
                                         ? 0.0
-                                        : feromonas.get(ciudadActual).get(ciudadSiguiente), Init.BETA);
+                                        : feromonas.get(ciudadActual).get(ciudadSiguiente), Init.ALFA);
             }
         }
 
@@ -157,6 +165,40 @@ public class Hormiga implements Callable {
 
         return resultado;
 
+    }
+
+    private ArrayList<Double> getFDAS(Integer ciudadActual, ArrayList<String> ciudadesNoVisitadas) {
+
+        ArrayList<Double> fdas = new ArrayList<>();
+        ArrayList<Double> probabilidades = new ArrayList<>();
+        Double fda = 0.0;
+        ArrayList<Double> tausxvis = new ArrayList<>();
+        Double tausxvistotal = 0.0;
+
+        for (String ciudadNoVisitada : ciudadesNoVisitadas) {
+
+            //calcular tau por visibilidad
+            Double elemento = 0.0;
+            elemento = Math.pow(Init.feromonas.get(ciudadActual).get(Integer.valueOf(ciudadNoVisitada)),
+                    Init.ALFA)
+                    * Math.pow(Init.visibilidades.get(ciudadActual).get(Integer.valueOf(ciudadNoVisitada)), Init.BETA);
+            tausxvis.add(elemento);
+            tausxvistotal += elemento;
+
+        }
+
+        for (Double tauxvi : tausxvis) {
+
+            Double elemento = 0.0;
+            elemento = tauxvi / tausxvistotal;
+            probabilidades.add(elemento);
+            fda += elemento;
+            fdas.add(fda);
+
+        }
+        return fdas;
+
+//throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
 }

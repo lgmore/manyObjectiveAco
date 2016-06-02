@@ -7,6 +7,7 @@ package py.com.fpuna.trabajopractico3maven;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -26,13 +27,14 @@ import org.apache.logging.log4j.LogManager;
 public class Init {
 
     //public static final String CIUDAD_PRUEBA = "burma14.dat";
-    public static int CANTIDAD_CIUDADES = 52;
-    public static final int CANTIDAD_INDIVIDUOS = 100;
+    public static int CANTIDAD_CIUDADES = 14;
+    public static Integer CIUDAD_INICIO = 0;
+    public static final int CANTIDAD_INDIVIDUOS = 10;
     //4 objetivos public static final int CANTIDAD_ITERACIONES = 700;
-    public static final int CANTIDAD_ITERACIONES = 1000;
+    public static final int CANTIDAD_ITERACIONES = 300;
     //public static final Double RADIO_FITNESS_SHARING = 10.0;
-    public static final Double RADIO_FITNESS_SHARING = 0.05;//2.0;
-    public static final String NOMBRE_ARCHIVO = "/home/lg_more/MEGAsync/maestria/AE2016CD/tp2/berlin52.dat";
+
+    public static final String NOMBRE_ARCHIVO = "/home/lg_more/MEGAsync/maestria/AE2016CD/tp2/burma14.dat";
     public static Hormiga mejorGlobal = null;
 
     public static ArrayList<ArrayList<Double>> ciudades;
@@ -40,12 +42,13 @@ public class Init {
     public static ArrayList<ArrayList<Double>> visibilidades;
 
     static final Logger log = LogManager.getLogger(Init.class.getName());
-    static Double BETA = 0.0001;
+    static Double BETA = 3.0;
     static double ALFA = 1.0;
-    private static Double Q = 100.0;
-    private static final Double COEFICIENTE_VISIBILIDAD = 1000.0;
+    private static Double Q = 10.0;
+    private static final Double COEFICIENTE_VISIBILIDAD = 1.0;
     static ArrayList<Integer> LISTA_CIUDADES;
     private static final Double COEFICIENTE_EVAPORACION = 0.05;
+    private static final Double COEFICIENTE_FEROMONA = 1.0;
 
     public static ArrayList<ArrayList<Double>> leerArchivo() {
         Scanner in;
@@ -91,7 +94,7 @@ public class Init {
             resultado.add(new ArrayList<>());
             while (s.hasNextDouble()) {
                 s.nextDouble();
-                resultado.get(row).add(1.0);
+                resultado.get(row).add(Init.COEFICIENTE_FEROMONA);
                 elementos++;
                 if (elementos >= CANTIDAD_CIUDADES) {
 
@@ -127,7 +130,7 @@ public class Init {
 
 //        ArrayList<Individuo> poblacionPareto = new ArrayList<>();
         for (int j = 0; j < CANTIDAD_ITERACIONES; j++) {
-            log.info("----------------------");
+//            log.info("----------------------");
             log.info("comienza iteracion: " + (j + 1));
 //
             List<Future<Hormiga>> listaFutures = new ArrayList<>();
@@ -169,13 +172,24 @@ public class Init {
 
             actualizarFeromonas(hormigas);
 
-            log.info("***soluciones encontradas***");
-
+//            log.info("***feromonas***");
+//
+//            for (ArrayList<Double> elemento : Init.feromonas) {
+//
+//                StringBuilder tester = new StringBuilder();
+//                DecimalFormat df = new DecimalFormat("#.000");
+//                for (int jj = 0; jj < elemento.size(); jj++) {
+//
+//                    tester.append(df.format(elemento.get(jj))).append(" ");
+//                }
+//                log.debug("" + tester.toString());
+//
+//            }
             for (Hormiga hormiga : hormigas) {
-
-                log.info("sol: " + Arrays.toString(hormiga.ciudades.toArray()));
-
+                log.info("solucion: " + Arrays.asList(hormiga.ciudades.toArray()));
             }
+            
+
             log.debug("seguimos");
 
         }
@@ -184,9 +198,16 @@ public class Init {
 
         for (Hormiga hormiga : hormigas) {
 
-            log.info("sol: " + Arrays.toString(hormiga.ciudades.toArray()));
+            log.info("" + Arrays.toString(hormiga.ciudades.toArray()));
 
         }
+
+//        log.info("lista feromonas");
+//        for (ArrayList<Double> elemento : Init.feromonas) {
+//
+//            log.info("" + Arrays.toString(elemento.toArray()));
+//
+//        }
 
         //    private static void printMatrizFeromonas() {
         //
@@ -226,6 +247,7 @@ public class Init {
     private static void actualizarFeromonas(ArrayList<Hormiga> hormigas) {
         //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
         int fila, columna = 0;
+        log.debug("hormiga: " + Arrays.asList(hormigas.get(0).ciudades.toArray()));
         for (fila = 0; fila < Init.CANTIDAD_CIUDADES - 1; fila++) {
 
             for (columna = fila + 1; columna < Init.CANTIDAD_CIUDADES; columna++) {
@@ -262,8 +284,7 @@ public class Init {
                     //ciudad visitada, y ciudad siguiente sea el inicio del tour, en ese caso
                     //son contiguos
                     )) {
-                resultado += Q / ciudades.get(hormiga.ciudades.get(indiceCiudadActual))
-                        .get(hormiga.ciudades.get(indiceCiudadSiguiente));
+                resultado += Q / getCostoTour(hormiga);
             } else {
                 //nada
             }
@@ -280,6 +301,27 @@ public class Init {
             Init.LISTA_CIUDADES.add(i);
 
         }
+        //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    private static Double getCostoTour(Hormiga hormiga) {
+
+        Double resultado = -1.0;
+        Integer ciudadActual = 0;
+        Integer ciudadSiguiente = 0;
+        for (Integer ciudad : hormiga.ciudades) {
+
+            if (resultado == -1.0) { //primera vez
+                ciudadActual = ciudad;
+                resultado = 0.0;
+                continue;
+            }
+            ciudadSiguiente = ciudad;
+            resultado += Init.ciudades.get(ciudadActual).get(ciudadSiguiente);
+            ciudadActual = ciudadSiguiente;
+
+        }
+        return resultado;
         //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }
